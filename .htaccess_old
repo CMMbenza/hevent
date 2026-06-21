@@ -1,0 +1,26 @@
+# 1. Empêcher l'accès direct au fichier .env
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# 2. Empêcher l'accès aux répertoires sensibles (config, includes)
+# Remplace 'config' et 'includes' par les noms de tes dossiers
+<DirectoryMatch "^.*/(config|includes)/.*$">
+    Order allow,deny
+    Deny from all
+</DirectoryMatch>
+
+# 3. Désactiver le listing des répertoires (évite de voir tes fichiers via le navigateur)
+Options -Indexes
+
+# 4. Protection contre les injections courantes
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{QUERY_STRING} (|%|$) [NC,OR]
+    RewriteCond %{QUERY_STRING} base64_encode[^(]*\([^)]*\) [NC,OR]
+    RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3E) [NC,OR]
+    RewriteCond %{QUERY_STRING} GLOBALS(=|\[|\%[0-9A-Z]{0,2}) [NC,OR]
+    RewriteCond %{QUERY_STRING} _REQUEST(=|\[|\%[0-9A-Z]{0,2}) [NC]
+    RewriteRule .* - [F]
+</IfModule>

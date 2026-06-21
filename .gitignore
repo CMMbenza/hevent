@@ -1,0 +1,8 @@
+# Variables d'environnement
+.env
+
+# Dépendances
+/vendor/
+
+# Logs
+*.log
