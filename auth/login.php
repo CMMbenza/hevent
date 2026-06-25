@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div class="login-header">
                         <h1 class="brand-title">H-Event</h1>
-                        <div class="brand-subtitle">Gestionnaire d'Invitations</div>
+                        <div class="brand-subtitle">Gestionnaire d'Invitations Numériques</div>
                     </div>
 
                     <div class="login-body">

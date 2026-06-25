@@ -91,25 +91,45 @@ if (empty($code)) {
 TRAITEMENT DES FORMULAIRES (POST)
 ====================================
 */
+// Récupération des boissons disponibles pour cet événement
+$stmt = $pdo->prepare("SELECT * FROM event_drinks WHERE generat_event = ?");
+$stmt->execute([$event_id]);
+$drinks_disponibles = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Récupération du choix actuel de l'invité (si déjà fait)
+$stmt = $pdo->prepare("
+    SELECT drink_id 
+    FROM guest_drink_choices 
+    WHERE invite_id = ? 
+    LIMIT 1
+");
+$stmt->execute([$invite['id']]);
+$current_choice = $stmt->fetchColumn();
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$preview_mode) {
 
     // Traitement du RSVP
     if (isset($_POST['save_rsvp'])) {
-        $status = $_POST['rsvp_status'] ?? 'En attente';
+    $status = $_POST['rsvp_status'] ?? 'En attente';
+    $selected_drink_id = $_POST['drink_id'] ?? null;
 
-        $stmt = $pdo->prepare("UPDATE invites SET rsvp_status = ? WHERE id = ?");
-        $stmt->execute([$status, $invite['id']]);
+    // 1. Mise à jour du statut RSVP
+    $stmt = $pdo->prepare("UPDATE invites SET rsvp_status = ? WHERE id = ?");
+    $stmt->execute([$status, $invite['id']]);
 
-        $_SESSION['flash'] = '
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle-fill"></i> Votre réponse a été enregistrée avec succès.
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>';
-        
-        // Redirection pour éviter la double soumission au rafraîchissement
-        header("Location: " . $_SERVER['REQUEST_URI']);
-        exit;
+    // 2. Gestion du choix de boisson dans la table de liaison
+    if ($selected_drink_id) {
+        // Supprimer l'ancien choix s'il existe
+        $pdo->prepare("DELETE FROM guest_drink_choices WHERE invite_id = ?")->execute([$invite['id']]);
+        // Insérer le nouveau choix
+        $stmt = $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, drink_id) VALUES (?, ?)");
+        $stmt->execute([$invite['id'], $selected_drink_id]);
     }
+
+    $_SESSION['flash'] = '<div class="alert alert-success">Votre choix a été enregistré !</div>';
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit;
+}
 
     // Traitement du Livre d'or
     if (isset($_POST['save_message'])) {
@@ -511,6 +531,18 @@ $current_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/controle_acces_invi
     #invitationCardToDownload * {
         transform: none !important;
     }
+
+    /* Force le texte du select à être noir et lisible */
+    .form-select {
+        color: #333 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* Force les options du menu déroulant */
+    .form-select option {
+        color: #333 !important;
+        background-color: #ffffff !important;
+    }
     </style>
 </head>
 
@@ -659,17 +691,30 @@ $current_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/controle_acces_invi
                     <div class="text-center mb-3">
                         <strong class="fs-5"><?= htmlspecialchars($invite['fullname']) ?></strong>
                     </div>
-                    <div class="d-grid gap-2">
+
+                    <div class="d-grid gap-2 mb-3">
                         <input type="radio" class="btn-check" name="rsvp_status" id="rsvpP" value="Present"
                             <?= $invite['rsvp_status']=='Present'?'checked':'' ?>>
-                        <label class="btn btn-outline-success w-100" for="rsvpP">😊 Oui, je serai présent à
-                            l’événement</label>
+                        <label class="btn btn-outline-success w-100" for="rsvpP">😊 Je serai présent</label>
 
                         <input type="radio" class="btn-check" name="rsvp_status" id="rsvpA" value="Absent"
                             <?= $invite['rsvp_status']=='Absent'?'checked':'' ?>>
-                        <label class="btn btn-outline-danger w-100" for="rsvpA">😔 Malheureusement, je serai
-                            absent</label>
+                        <label class="btn btn-outline-danger w-100" for="rsvpA">😔 Malheureusement, absent</label>
                     </div>
+
+                    <?php if (!empty($drinks_disponibles)): ?>
+                    <div class="mt-3">
+                        <label class="form-label fw-bold small">Choisissez votre boisson préférée :</label>
+                        <select name="drink_id" class="form-select border-secondary" required>
+                            <option value="" disabled selected>-- Sélectionnez une boisson --</option>
+                            <?php foreach ($drinks_disponibles as $d): ?>
+                            <option value="<?= $d['id'] ?>" <?= ($current_choice == $d['id']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($d['drink_name']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="text-center">
                     <button type="submit" name="save_rsvp" class="btn btn-custom w-100">

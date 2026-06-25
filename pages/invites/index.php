@@ -102,10 +102,14 @@ foreach ($invites as $i) {
                     style="background-color: var(--dark-slate, #1e293b); border: none; border-radius: 10px; font-weight: 600;">
                     <i class="bi bi-table me-1"></i> Tables
                 </a>
-                <a href="export_excel.php?event_id=<?= $event['generat'] ?>" class="btn btn-outline-success px-3"
+                <a href="../stats/?event_id=<?= $event['generat'] ?>" class="btn btn-outline-success px-3"
+                    style="border-radius: 10px; font-weight: 600;">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Stats
+                </a>
+                <!-- <a href="export_excel.php?event_id=<?= $event['generat'] ?>" class="btn btn-outline-success px-3"
                     style="border-radius: 10px; font-weight: 600;">
                     <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </a>
+                </a> -->
                 <a href="../events/event_show.php?id=<?= $event['generat'] ?>" class="btn btn-outline-secondary px-3"
                     style="border-radius: 10px; font-weight: 600;">
                     <i class="bi bi-arrow-left me-1"></i> Retour
@@ -117,7 +121,7 @@ foreach ($invites as $i) {
     <div class="row mb-4 g-3">
         <div class="col-xl-8 col-lg-7">
             <div class="row g-3">
-                <div class="col-sm-6">
+                <div class="col-xl-3">
                     <div class="card border-0 shadow-sm h-100"
                         style="border-radius: 12px; background-color: rgba(13, 110, 253, 0.05);">
                         <div class="card-body text-center d-flex flex-column justify-content-center py-4">
@@ -127,7 +131,7 @@ foreach ($invites as $i) {
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-xl-3">
                     <div class="card border-0 shadow-sm h-100"
                         style="border-radius: 12px; background-color: rgba(25, 135, 84, 0.05);">
                         <div class="card-body text-center d-flex flex-column justify-content-center py-4">
@@ -137,7 +141,7 @@ foreach ($invites as $i) {
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-xl-3">
                     <div class="card border-0 shadow-sm h-100"
                         style="border-radius: 12px; background-color: rgba(220, 53, 69, 0.05);">
                         <div class="card-body text-center d-flex flex-column justify-content-center py-4">
@@ -147,7 +151,7 @@ foreach ($invites as $i) {
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
+                <div class="col-xl-3">
                     <div class="card border-0 shadow-sm h-100"
                         style="border-radius: 12px; background-color: rgba(255, 193, 7, 0.08);">
                         <div class="card-body text-center d-flex flex-column justify-content-center py-4">
@@ -160,7 +164,7 @@ foreach ($invites as $i) {
             </div>
         </div>
 
-        <div class="col-xl-4 col-lg-5">
+        <div class="d-none col-xl-2 col-lg-5">
             <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
                 <div class="card-header bg-white fw-bold text-center border-0 pt-3"
                     style="color: var(--dark-slate, #1e293b);">
@@ -246,7 +250,18 @@ foreach ($invites as $i) {
                                     $eventId = urlencode($event['generat']);
                                     $code = urlencode($i['invite_code']);
 
-                                    $link = "https://" . $_SERVER['HTTP_HOST'] . "/guest/invitation.php?event_id=$eventId&code=$code";
+                                    // $link = "www.hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
+                                    // Au lieu de :
+                                    // $link = "www.hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
+
+                                    // Utilisez ceci :
+                                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+                                    $domain = $_SERVER['HTTP_HOST'];
+                                    $base_url = $protocol . $domain;
+
+                                    $link = "www.hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
+
+                                    $inviteLink = "https://hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
 
                                     $eventTitle = $event['title'] ?? 'Invitation événement';
                                     $guestName = $i['fullname'] ?? 'Invité';
@@ -280,7 +295,7 @@ foreach ($invites as $i) {
 
                                 <!-- SHARE -->
                                 <button class="btn btn-sm btn-outline-success"
-                                    onclick="shareInvite('<?= htmlspecialchars($link, ENT_QUOTES) ?>')">
+                                    onclick="shareInvite('<?= htmlspecialchars($inviteLink, ENT_QUOTES) ?>')">
                                     <i class="bi bi-share"></i>
                                 </button>
 

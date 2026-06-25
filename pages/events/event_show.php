@@ -180,6 +180,14 @@ $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
                                 <small class="text-muted">Modifier l'événement</small>
                             </a>
                         </div>
+                        <div class="col-md-3 col-6">
+                            <a href="../drinks/?event_id=<?= $event['generat'] ?>"
+                                class="btn btn-light border shadow-sm w-100 py-3">
+                                <i class="bi bi-cup-hot-fill fs-2" style="color: #6c757d;"></i>
+                                <div class="fw-bold mt-2" style="color: var(--dark-slate);">Boissons</div>
+                                <small class="text-muted">Gérer les choix</small>
+                            </a>
+                        </div>
                         <!-- <div class="col-md-3 col-6">
                             <a href="../../controle_acces_invitation/?event_id=<?= $event['generat'] ?>"
                                 class="btn btn-light border shadow-sm w-100 py-3 text-decoration-none" target="_blank"
@@ -256,7 +264,7 @@ $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
                                     </td>
                                     <td><?= htmlspecialchars($inv['table_name'] ?? '-') ?></td>
                                     <td><span
-                                            class="badge"><?= htmlspecialchars($inv['rsvp_status'] ?? 'En attente') ?></span>
+                                            class="badge bg-success"><?= htmlspecialchars($inv['rsvp_status'] ?? 'En attente') ?></span>
                                     </td>
 
                                     <td class="d-flex gap-1">

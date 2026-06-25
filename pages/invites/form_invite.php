@@ -274,7 +274,7 @@ include '../../includes/topbar.php';
             </div>
         </div>
 
-        <div class="col-lg-6">
+        <div class="d-none col-lg-6">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header fw-bold text-white d-flex align-items-center"
                     style="background-color: #212529;">
