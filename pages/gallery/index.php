@@ -147,9 +147,10 @@ include '../../includes/topbar.php';
             <h1 class="h3 mb-0 text-gray-800"><i class="bi bi-images"></i> Gestion de la Galerie</h1>
             <p class="mb-0 text-muted">Événement : <strong><?= htmlspecialchars($event['title']) ?></strong></p>
         </div>
-        <a href="../events/index.php" class="btn btn-sm btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Retour
-        </a>
+        <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
+            style="border-radius: 10px; font-weight: 600; font-size: 20px;">
+            <i class="bi bi-arrow-left"></i>
+        </button>
     </div>
 
     <div class="row g-4" style="color: var(--primary-rose);">
@@ -173,7 +174,7 @@ include '../../includes/topbar.php';
 
                         <button type="submit" class="btn btn-primary w-100 mt-3 py-2 fw-bold"
                             style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); font-weight: 500; border-radius: 12px; padding: 10px 20px;">
-                            <i class="bi bi-cloud-arrow-up-fill"></i> Téléverser & Compresser
+                            <i class="bi bi-cloud-arrow-up-fill"></i> Téléverser
                         </button>
                     </form>
                 </div>
@@ -288,7 +289,8 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Alerte visuelle si un fichier est trop lourd pour le navigateur (Ex: > 35 Mo)
                 if (file.size > 35 * 1024 * 1024) {
                     alert(
-                        `Attention : Le fichier "${file.name}" est extrêmement lourd (${(file.size/1024/1024).toFixed(1)} Mo). S'il bloque à l'envoi, veuillez le réduire avant.`);
+                        `Attention : Le fichier "${file.name}" est extrêmement lourd (${(file.size/1024/1024).toFixed(1)} Mo). S'il bloque à l'envoi, veuillez le réduire avant.`
+                        );
                 }
 
                 let reader = new FileReader();

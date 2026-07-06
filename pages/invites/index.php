@@ -112,7 +112,7 @@ foreach ($invites as $i) {
                 </a> -->
                 <a href="../events/event_show.php?id=<?= $event['generat'] ?>" class="btn btn-outline-secondary px-3"
                     style="border-radius: 10px; font-weight: 600;">
-                    <i class="bi bi-arrow-left me-1"></i> Retour
+                    <i class="bi bi-arrow-left me-1"></i>
                 </a>
             </div>
         </div>

@@ -44,59 +44,79 @@ $limit = $pack['max_invites'] ?? 0;
 $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
 ?>
 
+<style>
+/* Ajustements responsives pour fignoler le rendu */
+@media (max-width: 767px) {
+    .style-mobile-image {
+        max-width: 100% !important;
+    }
+
+    .border-top-mobile {
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        /* Petite ligne de séparation discrète sur mobile */
+        width: 100%;
+    }
+}
+</style>
+
 <div class="container-fluid">
 
     <div class="card shadow-sm mb-3 mt-3 p-3">
-        <div class="d-flex gap-3 align-items-start flex-wrap">
-            <div style="width:220px;flex-shrink:0;">
+        <div class="d-flex gap-3 align-items-start flex-column flex-md-row">
+
+            <div class="w-100 style-mobile-image" style="max-width:220px; flex-shrink:0;">
                 <?php if (!empty($event['cover_image'])): ?>
                 <img src="../../uploads/covers/<?= $event['cover_image'] ?>"
-                    style="width:100%;height:140px;object-fit:cover;border-radius:10px;">
+                    style="width:100%; height:140px; object-fit:cover; border-radius:10px;">
                 <?php else: ?>
-                <div style="width:100%;height:140px;background:#eee;border-radius:10px;"
+                <div style="width:100%; height:140px; background:#eee; border-radius:10px;"
                     class="d-flex align-items-center justify-content-center text-muted">
                     Aucune image
                 </div>
                 <?php endif; ?>
             </div>
 
-            <div class="flex-grow-1">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0 fw-bold" style="color: var(--dark-slate);"><?= htmlspecialchars($event['title']) ?>
+            <div class="flex-grow-1 w-100 d-flex flex-column justify-content-between" style="min-height: 140px;">
+
+                <div>
+                    <h4 class="mb-2 fw-bold" style="color: var(--dark-slate);">
+                        <?= htmlspecialchars($event['title']) ?>
                     </h4>
-                    <div class="d-flex gap-2 flex-wrap">
-                        <a href="../invites/form_invite.php?event_id=<?= $event['generat'] ?>"
-                            class="btn btn-primary btn-sm"
-                            style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); font-weight: 600;">
-                            <i class="bi bi-person-plus"></i> Ajouter invité
-                        </a>
-                        <a href="form_event.php?action=edit&id=<?= $event['generat'] ?>" class="btn btn-dark btn-sm"
-                            style="background-color: var(--dark-slate); border-color: var(--dark-slate);">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <a href="event_delete.php?id=<?= $event['generat'] ?>" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Supprimer cet événement ?')">
-                            <i class="bi bi-trash"></i>
-                        </a>
+
+                    <div class="mb-2 mt-1">
+                        <span class="badge"
+                            style="background-color: var(--dark-slate); color: var(--primary-rose);"><?= $event['event_type'] ?></span>
+                        <span class="badge bg-secondary"><?= $pack['name'] ?? 'Aucun Pack' ?></span>
+                        <span class="badge bg-light text-dark border">#<?= $event['generat'] ?></span>
                     </div>
+
+                    <div class="text-muted small mb-2">
+                        📅 <?= $event['event_date'] ?> | ⏰ <?= $event['event_time'] ?> | 📍
+                        <strong><?= htmlspecialchars($event['lieu'] ?? '') ?></strong>
+                        (<?= htmlspecialchars($event['location']) ?>)
+                    </div>
+
+                    <p class="mt-2 mb-3 text-muted small">
+                        <?= nl2br(htmlspecialchars($event['description'] ?? '')) ?>
+                    </p>
                 </div>
 
-                <div class="mb-2 mt-1">
-                    <span class="badge"
-                        style="background-color: var(--dark-slate); color: var(--primary-rose);"><?= $event['event_type'] ?></span>
-                    <span class="badge bg-secondary"><?= $pack['name'] ?? 'Aucun Pack' ?></span>
-                    <span class="badge bg-light text-dark border">#<?= $event['generat'] ?></span>
+                <div
+                    class="d-flex gap-2 flex-wrap mt-auto pt-2 border-top-mobile justify-content-start justify-content-md-end">
+                    <a href="../invites/form_invite.php?event_id=<?= $event['generat'] ?>"
+                        class="btn btn-primary btn-sm"
+                        style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); font-weight: 600;">
+                        <i class="bi bi-person-plus"></i> Ajouter invité
+                    </a>
+                    <a href="form_event.php?action=edit&id=<?= $event['generat'] ?>" class="btn btn-dark btn-sm"
+                        style="background-color: var(--dark-slate); border-color: var(--dark-slate);">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                    <a href="event_delete.php?id=<?= $event['generat'] ?>" class="btn btn-danger btn-sm"
+                        onclick="return confirm('Supprimer cet événement ?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
                 </div>
-
-                <div class="text-muted small">
-                    📅 <?= $event['event_date'] ?> | ⏰ <?= $event['event_time'] ?> | 📍
-                    <strong><?= htmlspecialchars($event['lieu'] ?? '') ?></strong>
-                    (<?= htmlspecialchars($event['location']) ?>)
-                </div>
-
-                <p class="mt-2 mb-0 text-muted small">
-                    <?= nl2br(htmlspecialchars($event['description'] ?? '')) ?>
-                </p>
             </div>
         </div>
     </div>

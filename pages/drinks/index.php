@@ -62,10 +62,15 @@ include '../../includes/topbar.php';
                 <p class="text-muted mb-0 small">Événement : <strong><?= htmlspecialchars($event['title']) ?></strong>
                 </p>
             </div>
-            <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addDrinkModal"
-                style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); border-radius: 12px; padding: 10px 20px;">
-                <i class="bi bi-plus-circle me-1"></i> Nouvelle boisson
-            </button>
+            <div><button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addDrinkModal"
+                    style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); border-radius: 12px; padding: 10px 20px;">
+                    <i class="bi bi-plus-circle me-1"></i> Nouvelle boisson
+                </button>
+                <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
+                    style="border-radius: 10px; font-weight: 600; font-size: 20px;">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+            </div>
         </div>
     </div>
 

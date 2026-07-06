@@ -73,8 +73,10 @@ include '../../includes/topbar.php';
                 l'événement</h1>
             <p class="mb-0 text-muted">Événement : <strong><?= htmlspecialchars($event['title']) ?></strong></p>
         </div>
-        <a href="../events/index.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i>
-            Retour</a>
+        <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
+            style="border-radius: 10px; font-weight: 600; font-size: 20px;">
+            <i class="bi bi-arrow-left"></i>
+        </button>
     </div>
 
     <div class="row g-3 mb-4">

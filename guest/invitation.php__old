@@ -148,32 +148,6 @@ $gallery_photos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https" : "http";
 $random_string = bin2hex(random_bytes(4));
 $current_url = $protocol . "://" . $_SERVER['HTTP_HOST'] . "/controle_acces_invitation/?event_id=" . $event_id . "&code=" . urlencode($code) . "&random=" . $random_string;
-
-// --- CONFIGURATION DU LIEN GOOGLE CALENDAR ---
-$google_cal_url = "";
-if (!empty($invite['event_date'])) {
-    $evt_date = $invite['event_date'];
-    $evt_time = !empty($invite['event_time']) ? $invite['event_time'] : "00:00:00";
-    
-    // Création des dates de début et de fin (on rajoute 4 heures par défaut pour la fin)
-    $start_datetime = new DateTime($evt_date . ' ' . $evt_time);
-    $end_datetime = clone $start_datetime;
-    $end_datetime->modify('+4 hours');
-    
-    // Format requis par Google : AAAAMMJJTHHMMSS
-    $google_start = $start_datetime->format('Ymd\THms');
-    $google_end = $end_datetime->format('Ymd\THms');
-    
-    $google_cal_url = "https://calendar.google.com/calendar/render?" . http_build_query([
-        'action'   => 'TEMPLATE',
-        'text'     => $invite['title'] . ' - ' . $invite['event_type'],
-        'dates'    => $google_start . '/' . $google_end,
-        'details'  => "Bonjour " . $invite['fullname'] . ",\n\nVous êtes cordialement invité à cet événement.\nVotre Code d'accès unique : " . $invite['invite_code'] . "\nDescription : " . $invite['description'],
-        'location' => $invite['location'],
-        'sf'       => 'true',
-        'output'   => 'xml'
-    ]);
-}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -181,7 +155,7 @@ if (!empty($invite['event_date'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hevent - <?= htmlspecialchars($invite['title'] ?? 'Événement') ?></title>
+    <title><?= htmlspecialchars($invite['title'] ?? 'Événement') ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
@@ -262,7 +236,7 @@ if (!empty($invite['event_date'])) {
         border: 1px solid rgba(255, 255, 255, 0.2);
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         width: 100%;
-        max-width: 950px;
+        max-width: 550px;
     }
 
     @media (min-width: 768px) {
@@ -452,48 +426,14 @@ if (!empty($invite['event_date'])) {
 
     .btn-download-img {
         background-color: var(--dark-slate);
-        border: 1px solid var(--dark-slate);
-        color: #ffffff;
+        color: white;
         border-radius: 12px;
         padding: 12px 25px;
         font-size: 0.9rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
+        font-weight: 500;
+        border: none;
         width: 100%;
         max-width: 320px;
-    }
-
-    .btn-download-img:hover {
-        background-color: var(--primary-rose);
-        color: white;
-    }
-
-    .btn-calendar {
-        background-color: transparent;
-        border: 1px solid var(--primary-rose);
-        color: var(--primary-rose-dark);
-        border-radius: 30px;
-        padding: 6px 16px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
-    }
-
-    .btn-calendar:hover {
-        background-color: var(--primary-rose);
-        color: white;
     }
 
     .gallery-img {
@@ -574,46 +514,14 @@ if (!empty($invite['event_date'])) {
         border-radius: 50%;
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
-
-    /* AJOUT : Bouton Contact WhatsApp Flottant (Vert) */
-    .contact-control {
-        position: fixed;
-        bottom: 75px;
-        /* Placé juste au-dessus du bouton musique */
-        right: 20px;
-        z-index: 2000;
-        background: #25D366;
-        /* Vert officiel WhatsApp */
-        color: white;
-        border: none;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: transform 0.2s ease;
-    }
-
-    .contact-control:hover {
-        color: white;
-        transform: scale(1.05);
-    }
     </style>
 </head>
 
 <body>
 
     <!-- Lecteur Audio avec une musique de fond acoustique très douce et calme -->
-    <!-- <audio id="bgMusic" loop src="musique.mp3"></audio>
-    <button class="music-control" id="musicBtn" onclick="toggleMusic()"><i class="bi bi-music-note-beamed"></i></button> -->
-
-    <!-- AJOUT : Bouton flottant de contact WhatsApp -->
-    <a href="https://wa.me/243980287578" target="_blank" class="contact-control" title="Nous contacter sur WhatsApp">
-        <i class="bi bi-whatsapp fs-5"></i>
-    </a>
+    <audio id="bgMusic" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"></audio>
+    <button class="music-control" id="musicBtn" onclick="toggleMusic()"><i class="bi bi-music-note-beamed"></i></button>
 
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container">
@@ -667,7 +575,7 @@ if (!empty($invite['event_date'])) {
     </header>
 
     <section class="container my-5 reveal">
-        <div class="text-center mx-auto" style="max-width: 100%;">
+        <div class="text-center mx-auto" style="max-width: 600px;">
             <h2 class="section-title">Informations Complémentaires</h2>
             <div class="heart-separator"><i class="bi bi-heart-fill"></i></div>
 
@@ -730,8 +638,8 @@ if (!empty($invite['event_date'])) {
 
     <?php if(!$preview_mode): ?>
     <section id="rsvp" class="container my-5 reveal">
-        <div class="rsvp-section mx-auto" style="max-width: 100%;">
-            <h2 class="section-title text-white">Confirmation (RSVP)</h2>
+        <div class="rsvp-section mx-auto" style="max-width: 600px;">
+            <h2 class="section-title">Confirmation (RSVP)</h2>
             <div class="heart-separator"><i class="bi bi-heart-fill"></i></div>
 
             <div class="text-center mb-4">
@@ -798,7 +706,7 @@ if (!empty($invite['event_date'])) {
                         <p class="invitation-text mb-4 text-muted px-2">Vous êtes chaleureusement convié. Votre présence
                             à nos côtés est précieuse.</p>
 
-                        <div class="row g-2 justify-content-center mb-4">
+                        <div class="row g-2 justify-content-center">
                             <div class="col-4 text-center">
                                 <i class="bi bi-calendar3 detail-icon"></i>
                                 <div class="detail-label">Date</div>
@@ -822,15 +730,6 @@ if (!empty($invite['event_date'])) {
                             </div>
                             <?php endif; ?>
                         </div>
-
-                        <!-- AJOUT : Bouton Google Calendar chic et discret -->
-                        <?php if (!empty($google_cal_url)): ?>
-                        <div class="mb-2 data-html2canvas-ignore">
-                            <a href="<?= $google_cal_url ?>" target="_blank" class="btn-calendar">
-                                <i class="bi bi-calendar-plus"></i> Ajouter à mon Google Agenda
-                            </a>
-                        </div>
-                        <?php endif; ?>
                     </div>
                     <div class="col-lg-4 qr-section">
                         <div class="small fw-bold text-muted mb-1">CODE D'ACCÈS</div>

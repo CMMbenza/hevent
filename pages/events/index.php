@@ -157,7 +157,7 @@ $totalEvents = count($events);
                             <div class="mt-3 d-flex gap-2 pt-2 border-top">
                                 <a href="event_show.php?action=show&id=<?= $event['generat'] ?>"
                                     class="btn btn-sm btn-outline-primary flex-grow-1" style="border-radius: 8px;">
-                                    <i class="bi bi-eye me-1"></i>Voir
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Ouvrir
                                 </a>
                                 <a href="form_event.php?action=edit&id=<?= $event['generat'] ?>"
                                     class="btn btn-sm btn-outline-warning" style="border-radius: 8px;">

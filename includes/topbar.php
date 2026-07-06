@@ -112,9 +112,9 @@
     </button>
 
     <div class="profile-section">
-        <div class="notification-bell">
+        <!-- <div class="notification-bell">
             <i class="bi bi-bell fs-5"></i>
-        </div>
+        </div> -->
 
         <?php
         $fullname = $_SESSION['fullname'] ?? 'Admin';

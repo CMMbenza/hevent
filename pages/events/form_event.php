@@ -4,6 +4,7 @@ session_start();
 require_once '../../config/database.php';
 require_once '../../includes/functions.php';
 
+$user_id = $_SESSION['user_id'] ?? null;
 /*
 ----------------------------------
 FLASH MESSAGES
@@ -35,7 +36,7 @@ if ($action === 'edit' && $id) {
         SELECT * FROM events
         WHERE generat = ? AND user_id = ?
     ");
-    $stmt->execute([$id, $_SESSION['user_id']]);
+    $stmt->execute([$id, $user_id]);
     $editEvent = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$editEvent) {
