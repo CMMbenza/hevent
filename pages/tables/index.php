@@ -1,13 +1,17 @@
 <?php
 session_start();
 
-require_once '../../config/database.php';
-require_once '../../includes/functions.php';
-
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+require_once '../../config/database.php';
+require_once '../../includes/functions.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 $event_id = $_GET['event_id'] ?? 0;
 
@@ -42,10 +46,6 @@ foreach ($tables as $t) {
     $chartLabels[] = htmlspecialchars($t['table_name'], ENT_QUOTES, 'UTF-8');
     $chartData[] = (int)$t['guests'];
 }
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 
 <div class="container-fluid py-4">
@@ -68,7 +68,7 @@ include '../../includes/topbar.php';
 
                 <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
                     style="border-radius: 10px; font-weight: 600; font-size: 20px;">
-                    <i class="bi bi-arrow-left"></i> 
+                    <i class="bi bi-arrow-left"></i>
                 </button>
             </div>
         </div>

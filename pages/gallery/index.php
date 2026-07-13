@@ -1,13 +1,17 @@
 <?php
 session_start();
 
-require_once '../../config/database.php';
-require_once '../../includes/functions.php';
-
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+require_once '../../config/database.php';
+require_once '../../includes/functions.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 $event_id = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
 
@@ -27,10 +31,6 @@ if (!$event) {
 $stmt = $pdo->prepare("SELECT * FROM gallery WHERE generat_event = ? ORDER BY created_at DESC");
 $stmt->execute([$event_id]);
 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 
 <style>
