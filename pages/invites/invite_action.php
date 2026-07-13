@@ -8,19 +8,22 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+$event_id = $_POST['event_id'] ?? 0;
+
 /*
 ----------------------------------
 UPDATE INVITE
 ----------------------------------
 */
-
-$event_id = $_POST['event_id'] ?? 0;
-
 if (isset($_POST['update'])) {
 
     $id = $_POST['id'] ?? null;
     $fullname = trim($_POST['fullname'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
+    $table_id = $_POST['table_id'] ?? '';
+
+    // Si aucune table sélectionnée, on passe la valeur à null pour respecter la bdd (SET NULL)
+    $table_id = (!empty($table_id)) ? (int)$table_id : null;
 
     if (!$id || empty($fullname)) {
         $_SESSION['error'] = "❌ Données invalides";
@@ -28,11 +31,11 @@ if (isset($_POST['update'])) {
         exit;
     }
 
-    // SECURITY CHECK (ownership)
+    // CORRECTION SECURITY CHECK : Jointure sur generat_event et generat
     $stmt = $pdo->prepare("
         SELECT i.id
         FROM invites i
-        JOIN events e ON e.id = i.event_id
+        JOIN events e ON e.generat = i.generat_event
         WHERE i.id = ? AND e.user_id = ?
     ");
     $stmt->execute([$id, $_SESSION['user_id']]);
@@ -43,14 +46,13 @@ if (isset($_POST['update'])) {
         exit;
     }
 
-    // UPDATE
+    // UPDATE : Ajout de table_id dans la requête
     $stmt = $pdo->prepare("
         UPDATE invites
-        SET fullname = ?, phone = ?
+        SET fullname = ?, phone = ?, table_id = ?
         WHERE id = ?
     ");
-
-    $stmt->execute([$fullname, $phone, $id]);
+    $stmt->execute([$fullname, $phone, $table_id, $id]);
 
     $_SESSION['success'] = "✔ Invité modifié avec succès";
 
@@ -73,11 +75,11 @@ if (isset($_POST['delete'])) {
         exit;
     }
 
-    // SECURITY CHECK
+    // CORRECTION SECURITY CHECK : Jointure sur generat_event et generat
     $stmt = $pdo->prepare("
         SELECT i.id
         FROM invites i
-        JOIN events e ON e.id = i.event_id
+        JOIN events e ON e.generat = i.generat_event
         WHERE i.id = ? AND e.user_id = ?
     ");
     $stmt->execute([$id, $_SESSION['user_id']]);

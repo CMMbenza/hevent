@@ -223,7 +223,7 @@ $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
         </div>
     </div>
 
-    <div class="row">
+    <div class="row d-none">
         <div class="col-lg-12">
             <div class="card shadow-sm">
                 <div class="card-header text-white"
