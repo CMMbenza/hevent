@@ -87,30 +87,58 @@ $stmt->execute([$event_id]);
 $drinks_disponibles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Récupération du choix actuel
-$stmt = $pdo->prepare("SELECT drink_id FROM guest_drink_choices WHERE invite_id = ? LIMIT 1");
+// $stmt = $pdo->prepare("SELECT drink_id FROM guest_drink_choices WHERE invite_id = ? LIMIT 1");
+// $stmt->execute([$invite['id']]);
+// $current_choice = $stmt->fetchColumn();
+
+$stmt = $pdo->prepare("SELECT drink_id, custom_drink_name FROM guest_drink_choices WHERE invite_id = ?");
 $stmt->execute([$invite['id']]);
-$current_choice = $stmt->fetchColumn();
+$choices_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$current_drink_ids = [];
+$current_custom_drink = '';
+
+foreach ($choices_data as $row) {
+    if (!empty($row['drink_id'])) {
+        $current_drink_ids[] = $row['drink_id']; // Stocke les IDs des boissons cochées
+    }
+    if (!empty($row['custom_drink_name'])) {
+        $current_custom_drink = $row['custom_drink_name']; // Stocke le texte de la boisson personnalisée
+    }
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$preview_mode) {
 
     // Traitement du RSVP
-    if (isset($_POST['save_rsvp'])) {
-        $status = $_POST['rsvp_status'] ?? 'En attente';
-        $selected_drink_id = $_POST['drink_id'] ?? null;
+if (isset($_POST['save_rsvp'])) {
+    $status = $_POST['rsvp_status'] ?? 'En attente';
+    $selected_drink_ids = $_POST['drink_ids'] ?? []; // Tableau des IDs choisis
+    $custom_drink = trim($_POST['custom_drink'] ?? '');
 
-        $stmt = $pdo->prepare("UPDATE invites SET rsvp_status = ? WHERE id = ?");
-        $stmt->execute([$status, $invite['id']]);
+    $stmt = $pdo->prepare("UPDATE invites SET rsvp_status = ? WHERE id = ?");
+    $stmt->execute([$status, $invite['id']]);
 
-        if ($selected_drink_id) {
-            $pdo->prepare("DELETE FROM guest_drink_choices WHERE invite_id = ?")->execute([$invite['id']]);
-            $stmt = $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, drink_id) VALUES (?, ?)");
-            $stmt->execute([$invite['id'], $selected_drink_id]);
+    // Nettoyage des anciens choix
+    $pdo->prepare("DELETE FROM guest_drink_choices WHERE invite_id = ?")->execute([$invite['id']]);
+
+    // Insertion des choix multiples
+    if (!empty($selected_drink_ids)) {
+        $stmt = $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, drink_id) VALUES (?, ?)");
+        foreach ($selected_drink_ids as $d_id) {
+            $stmt->execute([$invite['id'], (int)$d_id]);
         }
-
-        $_SESSION['flash'] = '<div class="alert alert-success">Votre choix a été enregistré !</div>';
-        header("Location: " . $_SERVER['REQUEST_URI']);
-        exit;
     }
+
+    // Insertion si suggestion personnalisée
+    if (!empty($custom_drink)) {
+        $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, custom_drink_name) VALUES (?, ?)")
+            ->execute([$invite['id'], $custom_drink]);
+    }
+
+    $_SESSION['flash'] = '<div class="alert alert-success">Choix enregistrés !</div>';
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit;
+}
 
     // Traitement du Livre d'or
     if (isset($_POST['save_message'])) {
@@ -761,15 +789,26 @@ if (!empty($invite['event_date'])) {
 
                     <?php if (!empty($drinks_disponibles)): ?>
                     <div class="mt-3">
-                        <label class="form-label fw-bold small text-secondary">Choisissez votre boisson préférée
-                            :</label>
-                        <select name="drink_id" class="form-select border-secondary" required>
-                            <option value="" disabled selected>-- Sélectionnez une boisson --</option>
-                            <?php foreach ($drinks_disponibles as $d): ?>
-                            <option value="<?= $d['id'] ?>" <?= ($current_choice == $d['id']) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($d['drink_name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                        <label class="form-label fw-bold small text-secondary">Choisissez vos boissons (choix multiples
+                            possibles) :</label>
+
+                        <?php foreach ($drinks_disponibles as $d): ?>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="drink_ids[]" value="<?= $d['id'] ?>"
+                                id="drink_<?= $d['id'] ?>"
+                                <?= in_array($d['id'], $current_drink_ids) ? 'checked' : '' ?>>
+                            <label class="form-check-label" for="drink_<?= $d['id'] ?>">
+                                <?= htmlspecialchars($d['drink_name']) ?>
+                            </label>
+                        </div>
+                        <?php endforeach; ?>
+
+                        <div class="mt-3">
+                            <label class="form-label small text-muted">Autre choix (si absent de la liste) :</label>
+                            <input type="text" name="custom_drink" class="form-control"
+                                placeholder="Ex: Jus de fruits pressés..."
+                                value="<?= htmlspecialchars($current_custom_drink) ?>">
+                        </div>
                     </div>
                     <?php endif; ?>
                 </div>

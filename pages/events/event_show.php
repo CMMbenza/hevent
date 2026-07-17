@@ -45,6 +45,32 @@ $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
 ?>
 
 <style>
+.description-wrapper{
+    position: relative;
+    overflow: hidden;
+    max-height: 15em;
+    transition: max-height .4s ease;
+}
+
+.description-wrapper.expanded{
+    max-height: 1000px;
+}
+
+.description-wrapper::after{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:40px;
+    background:linear-gradient(to bottom,transparent,#fff);
+    transition:opacity .3s;
+}
+
+.description-wrapper.expanded::after{
+    opacity:0;
+}
+
 /* Ajustements responsives pour fignoler le rendu */
 @media (max-width: 767px) {
     .style-mobile-image {
@@ -96,9 +122,13 @@ $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
                         (<?= htmlspecialchars($event['location']) ?>)
                     </div>
 
-                    <p class="mt-2 mb-3 text-muted small">
-                        <?= nl2br(htmlspecialchars($event['description'] ?? '')) ?>
-                    </p>
+                    <div class="description-wrapper">
+                        <p class="description mt-2 mb-3 text-muted small">
+                            <?= nl2br(htmlspecialchars($event['description'] ?? '')) ?>
+                        </p>
+                    </div>
+
+                    <a href="#" class="toggle-description text-primary small">Voir plus</a>
                 </div>
 
                 <div
@@ -363,6 +393,29 @@ window.addEventListener('pageshow', function(event) {
             2)) {
         window.location.reload();
     }
+});
+
+document.querySelectorAll(".description-wrapper").forEach(wrapper => {
+
+    const btn = wrapper.nextElementSibling;
+    const p = wrapper.querySelector(".description");
+
+    // Si le texte ne dépasse pas 10 lignes, cacher le bouton
+    if (p.scrollHeight <= wrapper.clientHeight + 2) {
+        btn.style.display = "none";
+        return;
+    }
+
+    btn.addEventListener("click", function(e) {
+        e.preventDefault();
+
+        wrapper.classList.toggle("expanded");
+
+        this.textContent = wrapper.classList.contains("expanded") ?
+            "Voir moins" :
+            "Voir plus";
+    });
+
 });
 </script>
 <?php include '../../includes/footer.php'; ?>
