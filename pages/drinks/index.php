@@ -1,12 +1,17 @@
 <?php
 session_start();
-require_once '../../config/database.php';
-require_once '../../includes/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+require_once '../../config/database.php';
+require_once '../../includes/functions.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 $event_id = $_GET['event_id'] ?? 0;
 
@@ -35,10 +40,6 @@ foreach ($drinks as $d) {
     $chartLabels[] = htmlspecialchars($d['drink_name'], ENT_QUOTES, 'UTF-8');
     $chartData[] = (int)$d['total_choix'];
 }
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 
 <style>

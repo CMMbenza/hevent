@@ -1,8 +1,17 @@
 <?php
 session_start();
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../index.php");
+    exit;
+}
+
 require_once '../../config/database.php';
 require_once '../../includes/functions.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 // Récupération de l'ID de l'événement depuis l'URL
 $event_id = $_GET['event_id'] ?? null;
@@ -31,22 +40,19 @@ $stmt = $pdo->prepare("
 $stmt->execute([$event_id]);
 $guests_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 3. Calcul des statistiques (Correction de la casse et des espaces)
+// 3. Calcul des statistiques (Logique : Present ou Absent uniquement)
 $total_presents = 0;
 $total_absents = 0;
 
 foreach ($guests_list as $guest) {
     $status = trim(strtolower($guest['rsvp_status']));
+    // Si c'est 'present', on compte. Sinon (Absent ou En attente), on compte comme absent.
     if ($status === 'present') {
         $total_presents++;
     } else {
         $total_absents++;
     }
 }
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr">

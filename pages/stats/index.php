@@ -1,14 +1,18 @@
 <?php
 session_start();
 
-require_once '../../config/database.php';
-require_once '../../includes/functions.php';
-require_once '../../includes/constant.php';
-
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+require_once '../../config/database.php';
+require_once '../../includes/functions.php';
+require_once '../../includes/constant.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 $event_id = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
 
@@ -60,10 +64,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$event_id]);
 $drinks_stats = $stmt->fetchAll();
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 
 <div class="container-fluid px-4">

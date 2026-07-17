@@ -10,17 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
 
-    $stmt = $pdo->prepare("
-        SELECT *
-        FROM users
-        WHERE email = ?
-        LIMIT 1
-    ");
-
+    // Utilisation d'une requête préparée pour prévenir les injections SQL
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Ajustement de la casse pour correspondre à votre base de données ('PASSWORD' ou 'password')
     $db_password = $user['PASSWORD'] ?? $user['password'] ?? '';
 
     if ($user && password_verify($password, $db_password)) {
@@ -28,10 +22,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['fullname'] = $user['fullname'];
         $_SESSION['email'] = $user['email'];
+        $_SESSION['role'] = $user['role'];
 
-        header('Location: ../pages/dashboard/');
-        exit();
+        if ($user['role'] === 'user') {
+            $stmt_event = $pdo->prepare("SELECT generat FROM events WHERE user_id = ? LIMIT 1");
+            $stmt_event->execute([$user['id']]);
+            $event = $stmt_event->fetch(PDO::FETCH_ASSOC);
 
+            if ($event && !empty($event['generat'])) {
+                // Utilisation de urlencode pour sécuriser le passage de la valeur dans l'URL
+                $url = '../pages/events/event_show.php?action=show&id=' . urlencode($event['generat']);
+                header('Location: ' . $url);
+            } else {
+                header('Location: ../pages/dashboard/');
+            }
+        } else {
+            header('Location: ../pages/dashboard/');
+        }
+        exit(); // Obligatoire après chaque header Location
     } else {
         $error = "Email ou mot de passe incorrect.";
     }

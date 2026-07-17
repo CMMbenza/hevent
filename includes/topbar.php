@@ -90,12 +90,16 @@
     font-weight: 500;
     color: var(--primary-rose-dark) !important;
 }
+
 @media (max-width: 768px) {
+
     /* Cache la sidebar par défaut sur mobile */
     .sidebar {
         position: fixed;
-        left: -250px; /* Elle est cachée à gauche */
-        transition: 0.3s ease; /* Animation fluide */
+        left: -250px;
+        /* Elle est cachée à gauche */
+        transition: 0.3s ease;
+        /* Animation fluide */
         z-index: 1050;
     }
 
@@ -112,28 +116,41 @@
     </button>
 
     <div class="profile-section">
-        <!-- <div class="notification-bell">
-            <i class="bi bi-bell fs-5"></i>
-        </div> -->
-
         <?php
-        $fullname = $_SESSION['fullname'] ?? 'Admin';
+        // 1. Récupération des données utilisateur
+        $fullname = $_SESSION['fullname'] ?? 'Utilisateur';
+        $role     = $_SESSION['role'] ?? 'user';
         $initial  = strtoupper(substr($fullname, 0, 1));
         $avatar   = $_SESSION['avatar'] ?? '';
+
+        // 2. Si c'est un 'user', on récupère son ID d'événement pour le bouton Aperçu
+        $event_generat = null;
+        if ($role === 'user') {
+            $stmt = $pdo->prepare("SELECT generat FROM events WHERE user_id = ? LIMIT 1");
+            $stmt->execute([$_SESSION['user_id']]);
+            $event = $stmt->fetch(PDO::FETCH_ASSOC);
+            $event_generat = $event['generat'] ?? null;
+        }
         ?>
+
+        <!-- Bouton Aperçu conditionnel -->
+        <?php if ($role === 'user' && $event_generat): ?>
+        <a href="../../guest/invitation.php?event_id=<?= urlencode($event_generat) ?>"
+            class="btn btn-sm btn-outline-primary me-3" target="_blank">
+            <i class="bi bi-eye"></i> Aperçu
+        </a>
+        <?php endif; ?>
 
         <div class="user-info-block">
             <?php if (!empty($avatar) && file_exists("../../uploads/avatars/" . $avatar)): ?>
             <img src="../../uploads/avatars/<?= htmlspecialchars($avatar) ?>" class="avatar" alt="Avatar">
             <?php else: ?>
-            <div class="avatar-placeholder">
-                <?= $initial ?>
-            </div>
+            <div class="avatar-placeholder"><?= $initial ?></div>
             <?php endif; ?>
 
             <div class="user-text d-none d-sm-block">
                 <strong><?= htmlspecialchars($fullname) ?></strong>
-                <small class="text-muted">Administrateur</small>
+                <small class="text-muted"><?= htmlspecialchars($role) ?></small>
             </div>
         </div>
     </div>
