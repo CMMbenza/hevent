@@ -568,6 +568,11 @@ if (!empty($invite['event_date'])) {
         width: 100%;
     }
 
+    .btn-custom:hover {
+        background-color: var(--primary-rose-dark);
+        color: white;
+    }
+
     .guestbook-msg {
         background-color: white;
         border-left: 4px solid var(--primary-rose);
@@ -635,8 +640,8 @@ if (!empty($invite['event_date'])) {
 <body>
 
     <!-- Lecteur Audio avec une musique de fond acoustique très douce et calme -->
-    <!-- <audio id="bgMusic" loop src="musique.mp3"></audio>
-    <button class="music-control" id="musicBtn" onclick="toggleMusic()"><i class="bi bi-music-note-beamed"></i></button> -->
+    <audio id="bgMusic" loop src="../assets/audio/the_mountain-calm-romantic-444038.mp3"></audio>
+    <button class="music-control" id="musicBtn" onclick="toggleMusic()"><i class="bi bi-music-note-beamed"></i></button>
 
     <!-- AJOUT : Bouton flottant de contact WhatsApp -->
     <a href="https://wa.me/243980287578" target="_blank" class="contact-control" title="Nous contacter sur WhatsApp">
@@ -789,22 +794,30 @@ if (!empty($invite['event_date'])) {
 
                     <?php if (!empty($drinks_disponibles)): ?>
                     <div class="mt-3">
-                        <label class="form-label fw-bold small text-secondary">Choisissez vos boissons (choix multiples
-                            possibles) :</label>
+                        <label class="form-label fw-bold small text-secondary">Choisissez vos boissons (Si vous êtes
+                            invité(e) en couple, vous pouvez sélectionner plusieurs boissons afin que chacun choisisse
+                            selon ses préférences) :</label>
 
-                        <?php foreach ($drinks_disponibles as $d): ?>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="drink_ids[]" value="<?= $d['id'] ?>"
-                                id="drink_<?= $d['id'] ?>"
-                                <?= in_array($d['id'], $current_drink_ids) ? 'checked' : '' ?>>
-                            <label class="form-check-label" for="drink_<?= $d['id'] ?>">
-                                <?= htmlspecialchars($d['drink_name']) ?>
-                            </label>
+                        <div class="row">
+                            <?php foreach ($drinks_disponibles as $d): ?>
+                            <div class="col-2 me-2">
+                                <input class="form-check-input me-2" type="checkbox" name="drink_ids[]"
+                                    value="<?= $d['id'] ?>" id="drink_<?= $d['id'] ?>"
+                                    <?= in_array($d['id'], $current_drink_ids) ? 'checked' : '' ?>>
+
+                                <label class="mb-0" for="drink_<?= $d['id'] ?>">
+                                    <?= htmlspecialchars($d['drink_name']) ?>
+                                </label>
+                            </div>
+                            <?php endforeach; ?>
                         </div>
-                        <?php endforeach; ?>
+
 
                         <div class="mt-3">
-                            <label class="form-label small text-muted">Autre choix (si absent de la liste) :</label>
+                            <label class="form-label small text-muted"><b>Votre boisson préférée ne figure pas dans la
+                                    liste ?</b> Écrivez-la ici. Nous ferons notre possible pour répondre à votre
+                                demande. En cas d'indisponibilité, <b>une autre boisson vous sera
+                                    proposée.</b>😊</label>
                             <input type="text" name="custom_drink" class="form-control"
                                 placeholder="Ex: Jus de fruits pressés..."
                                 value="<?= htmlspecialchars($current_custom_drink) ?>">
@@ -967,6 +980,10 @@ if (!empty($invite['event_date'])) {
     function toggleMusic() {
         const music = document.getElementById('bgMusic');
         const btn = document.getElementById('musicBtn');
+
+        music.volume = 0.2;
+        music.play();
+
         if (music.paused) {
             music.play().catch(e => console.log("Lecture bloquée par le navigateur, interaction requise."));
             btn.innerHTML = '<i class="bi bi-pause-fill"></i>';
