@@ -45,30 +45,30 @@ $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
 ?>
 
 <style>
-.description-wrapper{
+.description-wrapper {
     position: relative;
     overflow: hidden;
     max-height: 15em;
     transition: max-height .4s ease;
 }
 
-.description-wrapper.expanded{
+.description-wrapper.expanded {
     max-height: 1000px;
 }
 
-.description-wrapper::after{
-    content:"";
-    position:absolute;
-    left:0;
-    right:0;
-    bottom:0;
-    height:40px;
-    background:linear-gradient(to bottom,transparent,#fff);
-    transition:opacity .3s;
+.description-wrapper::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 40px;
+    background: linear-gradient(to bottom, transparent, #fff);
+    transition: opacity .3s;
 }
 
-.description-wrapper.expanded::after{
-    opacity:0;
+.description-wrapper.expanded::after {
+    opacity: 0;
 }
 
 /* Ajustements responsives pour fignoler le rendu */
@@ -222,20 +222,28 @@ $percent = ($limit == -1 || $limit == 0) ? 0 : ($current / $limit) * 100;
                                 <small class="text-muted">Analyse événement</small>
                             </a>
                         </div>
-                        <div class="col-md-3 col-6">
+                        <!-- <div class="col-md-3 col-6">
                             <a href="form_event.php?action=edit&id=<?= $event['generat'] ?>"
                                 class="btn btn-light border shadow-sm w-100 py-3">
                                 <i class="bi bi-gear-fill text-dark fs-2"></i>
                                 <div class="fw-bold mt-2" style="color: var(--dark-slate);">Paramètres</div>
                                 <small class="text-muted">Modifier l'événement</small>
                             </a>
-                        </div>
+                        </div> -->
                         <div class="col-md-3 col-6">
                             <a href="../drinks/?event_id=<?= $event['generat'] ?>"
                                 class="btn btn-light border shadow-sm w-100 py-3">
                                 <i class="bi bi-cup-hot-fill fs-2" style="color: #6c757d;"></i>
                                 <div class="fw-bold mt-2" style="color: var(--dark-slate);">Boissons</div>
                                 <small class="text-muted">Gérer les choix</small>
+                            </a>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <a href="../guestbook/?event_id=<?= $event['generat'] ?>"
+                                class="btn btn-light border shadow-sm w-100 py-3">
+                                <i class="bi bi-chat-heart fs-2" style="color: #6c757d;"></i>
+                                <div class="fw-bold mt-2" style="color: var(--dark-slate);">Livre d'or</div>
+                                <small class="text-muted">Les messages pour vous</small>
                             </a>
                         </div>
                         <!-- <div class="col-md-3 col-6">

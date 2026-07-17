@@ -801,7 +801,7 @@ if (!empty($invite['event_date'])) {
                         <div class="row">
                             <?php foreach ($drinks_disponibles as $d): ?>
                             <div class="col-2 me-2">
-                                <input class="form-check-input me-2" type="checkbox" name="drink_ids[]"
+                                <input class="form-check-input mb-2" type="checkbox" name="drink_ids[]"
                                     value="<?= $d['id'] ?>" id="drink_<?= $d['id'] ?>"
                                     <?= in_array($d['id'], $current_drink_ids) ? 'checked' : '' ?>>
 
