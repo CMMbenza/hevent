@@ -1,12 +1,17 @@
 <?php
 session_start();
-require_once '../../config/database.php';
-require_once '../../includes/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+require_once '../../config/database.php';
+require_once '../../includes/functions.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 $event_id = $_GET['event_id'] ?? 0;
 
@@ -35,10 +40,6 @@ foreach ($drinks as $d) {
     $chartLabels[] = htmlspecialchars($d['drink_name'], ENT_QUOTES, 'UTF-8');
     $chartData[] = (int)$d['total_choix'];
 }
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 
 <style>
@@ -62,10 +63,15 @@ include '../../includes/topbar.php';
                 <p class="text-muted mb-0 small">Événement : <strong><?= htmlspecialchars($event['title']) ?></strong>
                 </p>
             </div>
-            <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addDrinkModal"
-                style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); border-radius: 12px; padding: 10px 20px;">
-                <i class="bi bi-plus-circle me-1"></i> Nouvelle boisson
-            </button>
+            <div><button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addDrinkModal"
+                    style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); border-radius: 12px; padding: 10px 20px;">
+                    <i class="bi bi-plus-circle me-1"></i> Nouvelle boisson
+                </button>
+                <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
+                    style="border-radius: 10px; font-weight: 600; font-size: 20px;">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+            </div>
         </div>
     </div>
 

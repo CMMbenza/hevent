@@ -1,13 +1,17 @@
 <?php
 session_start();
 
-require_once '../../config/database.php';
-require_once '../../includes/functions.php';
-
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+require_once '../../config/database.php';
+require_once '../../includes/functions.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 $event_id = $_GET['event_id'] ?? 0;
 
@@ -42,10 +46,6 @@ foreach ($tables as $t) {
     $chartLabels[] = htmlspecialchars($t['table_name'], ENT_QUOTES, 'UTF-8');
     $chartData[] = (int)$t['guests'];
 }
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 
 <div class="container-fluid py-4">
@@ -60,11 +60,17 @@ include '../../includes/topbar.php';
                     Événement : <strong class="text-dark"><?= htmlspecialchars($event['title']) ?></strong>
                 </p>
             </div>
-            
-            <button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addTableModal"
-            style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); font-weight: 500; border-radius: 12px; padding: 10px 20px;">
-                <i class="bi bi-plus-circle me-1"></i> Nouvelle table
-            </button>
+
+            <div><button class="btn btn-success px-3" data-bs-toggle="modal" data-bs-target="#addTableModal"
+                    style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); font-weight: 500; border-radius: 12px; padding: 10px 20px;">
+                    <i class="bi bi-plus-circle me-1"></i> Nouvelle table
+                </button>
+
+                <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
+                    style="border-radius: 10px; font-weight: 600; font-size: 20px;">
+                    <i class="bi bi-arrow-left"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -122,25 +128,25 @@ include '../../includes/topbar.php';
     </div>
 </div>
 
- <?php if (!empty($tables)): ?>
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0 bg-white" style="border-radius: 12px;">
-                <div class="card-header bg-white py-3 border-0">
-                    <h6 class="mb-0 fw-bold" style="color: var(--primary-rose);">
-                        <i class="bi bi-bar-chart-fill me-2"></i>Occupation des tables (Nombre d'invités)
-                    </h6>
-                </div>
-                <div class="card-body">
-                    <div style="position: relative; height:240px; width:100%">
-                        <canvas id="tablesChart"></canvas>
-                    </div>
+<?php if (!empty($tables)): ?>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 bg-white" style="border-radius: 12px;">
+            <div class="card-header bg-white py-3 border-0">
+                <h6 class="mb-0 fw-bold" style="color: var(--primary-rose);">
+                    <i class="bi bi-bar-chart-fill me-2"></i>Occupation des tables (Nombre d'invités)
+                </h6>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height:240px; width:100%">
+                    <canvas id="tablesChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
-    <?php endif; ?>
-    
+</div>
+<?php endif; ?>
+
 <?php foreach($tables as $t): ?>
 <div class="modal fade" id="edit<?= $t['id'] ?>" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

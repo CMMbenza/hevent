@@ -1,14 +1,18 @@
 <?php
 session_start();
 
-require_once '../../config/database.php';
-require_once '../../includes/functions.php';
-require_once '../../includes/constant.php';
-
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../../index.php");
     exit;
 }
+
+require_once '../../config/database.php';
+require_once '../../includes/functions.php';
+require_once '../../includes/constant.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 $event_id = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
 
@@ -60,10 +64,6 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$event_id]);
 $drinks_stats = $stmt->fetchAll();
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 
 <div class="container-fluid px-4">
@@ -73,8 +73,10 @@ include '../../includes/topbar.php';
                 l'événement</h1>
             <p class="mb-0 text-muted">Événement : <strong><?= htmlspecialchars($event['title']) ?></strong></p>
         </div>
-        <a href="../events/index.php" class="btn btn-sm btn-outline-secondary"><i class="bi bi-arrow-left"></i>
-            Retour</a>
+        <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
+            style="border-radius: 10px; font-weight: 600; font-size: 20px;">
+            <i class="bi bi-arrow-left"></i>
+        </button>
     </div>
 
     <div class="row g-3 mb-4">

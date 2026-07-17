@@ -1,8 +1,17 @@
 <?php
 session_start();
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../../index.php");
+    exit;
+}
+
 require_once '../../config/database.php';
 require_once '../../includes/functions.php';
+
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/topbar.php';
 
 // Récupération de l'ID de l'événement depuis l'URL
 $event_id = $_GET['event_id'] ?? null;
@@ -31,22 +40,19 @@ $stmt = $pdo->prepare("
 $stmt->execute([$event_id]);
 $guests_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 3. Calcul des statistiques (Correction de la casse et des espaces)
+// 3. Calcul des statistiques (Logique : Present ou Absent uniquement)
 $total_presents = 0;
 $total_absents = 0;
 
 foreach ($guests_list as $guest) {
     $status = trim(strtolower($guest['rsvp_status']));
+    // Si c'est 'present', on compte. Sinon (Absent ou En attente), on compte comme absent.
     if ($status === 'present') {
         $total_presents++;
     } else {
         $total_absents++;
     }
 }
-
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/topbar.php';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -96,6 +102,37 @@ include '../../includes/topbar.php';
 
 <body>
     <div class="container py-5">
+        <div class="card shadow-sm mb-4 border-0 mt-3" style="border-radius: 15px;">
+            <div class="card-body d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h4 class="mb-1 fw-bold" style="color: var(--dark-slate, #1e293b);">
+                        <i class="bi bi-people-fill me-2" style="color: var(--primary-rose, #ffafcc);"></i>
+                        Gestion des réponses/invités
+                    </h4>
+                    <div class="text-muted fw-semibold">
+                        <i class="bi bi-bookmark-star me-1"></i> <?= htmlspecialchars($event['title']) ?>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="form_invite.php?event_id=<?= $event['generat'] ?>" class="btn btn-success px-3"
+                        style="border-radius: 10px; font-weight: 600;">
+                        <i class="bi bi-person-plus-fill me-1"></i> Ajouter invité
+                    </a>
+
+                    <a href="../stats/?event_id=<?= $event['generat'] ?>" class="btn btn-outline-success px-3"
+                        style="border-radius: 10px; font-weight: 600;">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Stats
+                    </a>
+
+                    <button onclick="history.back()" class="btn btn-outline-secondary btn-md"
+                        style="border-radius: 10px; font-weight: 600; font-size: 20px;">
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="row g-4 justify-content-center">
             <div class="col-12 col-xl-4">
                 <div class="card rsvp-card p-4 h-100 text-center d-flex flex-column justify-content-between">

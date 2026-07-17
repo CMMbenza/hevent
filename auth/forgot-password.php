@@ -4,44 +4,55 @@ session_start();
 require_once '../config/database.php';
 
 $error = '';
+$success = '';
+$email_verified = false;
+$email_input = '';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+// Étape 1 : Vérification de l'email
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'check_email') {
+    $email_input = trim($_POST['email'] ?? '');
 
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    // Utilisation d'une requête préparée pour prévenir les injections SQL
-    $stmt = $pdo->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-    $stmt->execute([$email]);
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+    $stmt->execute([$email_input]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    $db_password = $user['PASSWORD'] ?? $user['password'] ?? '';
-
-    if ($user && password_verify($password, $db_password)) {
-
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['fullname'] = $user['fullname'];
-        $_SESSION['email'] = $user['email'];
-        $_SESSION['role'] = $user['role'];
-
-        if ($user['role'] === 'user') {
-            $stmt_event = $pdo->prepare("SELECT generat FROM events WHERE user_id = ? LIMIT 1");
-            $stmt_event->execute([$user['id']]);
-            $event = $stmt_event->fetch(PDO::FETCH_ASSOC);
-
-            if ($event && !empty($event['generat'])) {
-                // Utilisation de urlencode pour sécuriser le passage de la valeur dans l'URL
-                $url = '../pages/events/event_show.php?action=show&id=' . urlencode($event['generat']);
-                header('Location: ' . $url);
-            } else {
-                header('Location: ../pages/dashboard/');
-            }
-        } else {
-            header('Location: ../pages/dashboard/');
-        }
-        exit(); // Obligatoire après chaque header Location
+    if ($user) {
+        $email_verified = true; // L'email existe, on va afficher le formulaire de reset
     } else {
-        $error = "Email ou mot de passe incorrect.";
+        $error = "Cette adresse email n'existe pas dans notre base de données.";
+    }
+}
+
+// Étape 2 : Mise à jour du mot de passe
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'reset_password') {
+    $email_input = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $password_confirm = $_POST['password_confirm'] ?? '';
+
+    if ($password !== $password_confirm) {
+        $error = "Les deux mots de passe ne correspondent pas.";
+        $email_verified = true; // On reste sur le formulaire de reset
+    } elseif (strlen($password) < 6) { // Sécurité minimale
+        $error = "Le mot de passe doit contenir au moins 6 caractères.";
+        $email_verified = true;
+    } else {
+        // Hachage du nouveau mot de passe
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+
+        // Détection automatique du nom de la colonne (PASSWORD ou password)
+        // On récupère une ligne pour inspecter les clés si nécessaire, ou on tente l'update standard.
+        // Par sécurité avec votre structure adaptative :
+        try {
+            // On tente d'abord avec 'password' en minuscule
+            $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE email = ?");
+            $stmt->execute([$hashed_password, $email_input]);
+        } catch (PDOException $e) {
+            // Si ça échoue, on tente avec 'PASSWORD' en majuscule
+            $stmt = $pdo->prepare("UPDATE users SET PASSWORD = ? WHERE email = ?");
+            $stmt->execute([$hashed_password, $email_input]);
+        }
+
+        $success = "Votre mot de passe a bien été mis à jour ! Vous pouvez vous connecter.";
     }
 }
 ?>
@@ -52,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connexion | H-Event</title>
+    <title>Mot de passe oublié | H-Event</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -162,6 +173,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         border-radius: 0 10px 10px 0;
     }
 
+    .form-control.input-password-confirm {
+        border-radius: 0 10px 10px 0;
+    }
+
     .form-control:focus {
         border-color: #e5dcd9;
         box-shadow: none;
@@ -202,6 +217,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         border-radius: 10px;
     }
 
+    .alert-success {
+        background-color: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+        font-size: 0.9rem;
+        border-radius: 10px;
+    }
+
     .link-register {
         color: var(--primary-rose-dark);
         text-decoration: none;
@@ -225,7 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     <div class="login-header">
                         <h1 class="brand-title">H-Event</h1>
-                        <div class="brand-subtitle">Gestionnaire d'Invitations Numériques</div>
+                        <div class="brand-subtitle">Réinitialisation du Mot de Passe</div>
                     </div>
 
                     <div class="login-body">
@@ -237,21 +260,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <?php endif; ?>
 
-                        <form method="POST" class="mb-4">
+                        <?php if($success): ?>
+                        <div class="alert alert-success d-flex align-items-center gap-2" role="alert">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <div><?= htmlspecialchars($success) ?></div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a href="login.php" class="btn btn-custom w-100">Aller à la page de connexion</a>
+                        </div>
+                        <?php else: ?>
 
-                            <div class="mb-3">
-                                <label class="form-label">Adresse Email</label>
+                        <?php if(!$email_verified): ?>
+                        <form method="POST" class="mb-4">
+                            <input type="hidden" name="action" value="check_email">
+
+                            <div class="mb-4">
+                                <label class="form-label">Entrez votre Adresse Email</label>
                                 <div class="input-group">
                                     <span class="input-group-text pre-icon"><i class="bi bi-envelope"></i></span>
                                     <input type="email" name="email" class="form-control input-email"
-                                        placeholder="chrismbenza@hevent.com" required>
+                                        placeholder="chrismbenza@hevent.com"
+                                        value="<?= htmlspecialchars($email_input) ?>" required>
                                 </div>
                             </div>
 
-                            <div class="mb-4">
-                                <label class="form-label">Mot de passe</label>
+                            <button type="submit" class="btn btn-custom w-100">
+                                <i class="bi bi-search me-2"></i> Vérifier l'adresse email
+                            </button>
+                        </form>
+
+                        <?php else: ?>
+                        <form method="POST" class="mb-4">
+                            <input type="hidden" name="action" value="reset_password">
+                            <input type="hidden" name="email" value="<?= htmlspecialchars($email_input) ?>">
+
+                            <div class="alert alert-info small py-2 mb-3">
+                                Email validé : <strong><?= htmlspecialchars($email_input) ?></strong>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nouveau mot de passe</label>
                                 <div class="input-group">
-                                    <span class="input-group-text pre-icon"><i class="bi bi-lock"></i></span>
+                                    <span class="input-group-text pre-icon"><i
+                                            class="bi bi-lock text-primary-rose"></i></span>
                                     <input type="password" name="password" id="passwordInput" class="form-control"
                                         placeholder="••••••••" required>
                                     <span class="input-group-text toggle-password" id="togglePasswordBtn">
@@ -260,24 +311,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 </div>
                             </div>
 
+                            <div class="mb-4">
+                                <label class="form-label">Répéter le mot de passe</label>
+                                <div class="input-group">
+                                    <span class="input-group-text pre-icon"><i class="bi bi-lock-fill"></i></span>
+                                    <input type="password" name="password_confirm" id="passwordConfirmInput"
+                                        class="form-control input-password-confirm" placeholder="••••••••" required>
+                                </div>
+                            </div>
+
                             <button type="submit" class="btn btn-custom w-100">
-                                <i class="bi bi-box-arrow-in-right me-2"></i> Se connecter
+                                <i class="bi bi-shield-check me-2"></i> Mettre à jour le mot de passe
                             </button>
-
                         </form>
+                        <?php endif; ?>
 
-                        <div class="text-center mt-3">
-                            <span class="text-muted small">Nouveau sur H-Event ?</span>
-                            <a href="register.php" class="link-register small fw-semibold ms-1">
-                                Créer un compte
-                            </a>
-
-                            <span class="mx-2 text-muted">|</span>
-
-                            <a href="forgot-password.php" class="link-register small fw-semibold">
-                                Mot de passe oublié ?
-                            </a>
+                        <div class="text-center">
+                            <a href="login.php" class="link-register small"><i class="bi bi-arrow-left me-1"></i> Retour
+                                à la connexion</a>
                         </div>
+
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -286,19 +340,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
     <script>
+    // Script pour afficher/masquer le premier champ mot de passe
     const passwordInput = document.getElementById('passwordInput');
     const togglePasswordBtn = document.getElementById('togglePasswordBtn');
     const passwordIcon = document.getElementById('passwordIcon');
 
-    togglePasswordBtn.addEventListener('click', function() {
-        // Basculer le type d'attribut
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
-
-        // Basculer l'icône
-        passwordIcon.classList.toggle('bi-eye');
-        passwordIcon.classList.toggle('bi-eye-slash');
-    });
+    if (togglePasswordBtn) {
+        togglePasswordBtn.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            passwordIcon.classList.toggle('bi-eye');
+            passwordIcon.classList.toggle('bi-eye-slash');
+        });
+    }
     </script>
 
 </body>

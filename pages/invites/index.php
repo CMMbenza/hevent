@@ -35,6 +35,15 @@ if (!$event) {
 
 /*
 ----------------------------------
+TABLES DISPONIBLES (Pour le select du modal)
+----------------------------------
+*/
+$stmt_tables = $pdo->prepare("SELECT id, table_name FROM event_tables WHERE generat_event = ? ORDER BY table_name ASC");
+$stmt_tables->execute([$event['generat']]);
+$event_tables = $stmt_tables->fetchAll(PDO::FETCH_ASSOC);
+
+/*
+----------------------------------
 INVITES EVENT
 ----------------------------------
 */
@@ -106,17 +115,27 @@ foreach ($invites as $i) {
                     style="border-radius: 10px; font-weight: 600;">
                     <i class="bi bi-file-earmark-excel me-1"></i> Stats
                 </a>
-                <!-- <a href="export_excel.php?event_id=<?= $event['generat'] ?>" class="btn btn-outline-success px-3"
-                    style="border-radius: 10px; font-weight: 600;">
-                    <i class="bi bi-file-earmark-excel me-1"></i> Excel
-                </a> -->
                 <a href="../events/event_show.php?id=<?= $event['generat'] ?>" class="btn btn-outline-secondary px-3"
                     style="border-radius: 10px; font-weight: 600;">
-                    <i class="bi bi-arrow-left me-1"></i> Retour
+                    <i class="bi bi-arrow-left me-1"></i>
                 </a>
             </div>
         </div>
     </div>
+
+    <!-- Alertes de session de invite_action.php -->
+    <?php if (isset($_SESSION['success'])): ?>
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['error'])): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php endif; ?>
 
     <div class="row mb-4 g-3">
         <div class="col-xl-8 col-lg-7">
@@ -163,24 +182,6 @@ foreach ($invites as $i) {
                 </div>
             </div>
         </div>
-
-        <div class="d-none col-xl-2 col-lg-5">
-            <div class="card shadow-sm border-0 h-100" style="border-radius: 15px;">
-                <div class="card-header bg-white fw-bold text-center border-0 pt-3"
-                    style="color: var(--dark-slate, #1e293b);">
-                    📊 Répartition des RSVP
-                </div>
-                <div class="card-body d-flex align-items-center justify-content-center p-3">
-                    <?php if ($total > 0): ?>
-                    <div style="position: relative; width: 100%; height: 200px;">
-                        <canvas id="rsvpChart"></canvas>
-                    </div>
-                    <?php else: ?>
-                    <div class="text-center text-muted py-4"><i class="bi bi-pie-chart me-1"></i>Aucune donnée</div>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="input-group mb-4 shadow-sm" style="border-radius: 10px; overflow: hidden;">
@@ -195,7 +196,6 @@ foreach ($invites as $i) {
                 <thead style="background-color: var(--dark-slate, #1e293b); color: #ffffff;">
                     <tr>
                         <th class="ps-4 py-3">Nom</th>
-                        <!-- <th class="py-3">Événement</th> -->
                         <th class="py-3">Téléphone</th>
                         <th class="py-3">Code</th>
                         <th class="py-3">Table</th>
@@ -206,7 +206,7 @@ foreach ($invites as $i) {
                 <tbody>
                     <?php if (empty($invites)): ?>
                     <tr>
-                        <td colspan="7" class="text-center text-muted py-5">
+                        <td colspan="6" class="text-center text-muted py-5">
                             <i class="bi bi-person-x fs-3 d-block mb-2"></i> Aucun invité trouvé pour cet événement.
                         </td>
                     </tr>
@@ -216,11 +216,6 @@ foreach ($invites as $i) {
                         <td class="searchable ps-4 fw-bold" style="color: #495057;">
                             <i class="bi bi-person-circle me-2 text-muted"></i><?= htmlspecialchars($i['fullname']) ?>
                         </td>
-                        <!-- <td class="searchable">
-                                <span class="badge bg-light text-dark border">
-                                    <?= htmlspecialchars($i['event_title']) ?>
-                                </span>
-                            </td> -->
                         <td class="searchable text-muted"><?= htmlspecialchars($i['phone'] ?? '-') ?></td>
                         <td class="searchable">
                             <span class="badge bg-secondary opacity-75"><?= $i['invite_code'] ?></span>
@@ -246,21 +241,9 @@ foreach ($invites as $i) {
 
                                 <?php
                                     $phone = preg_replace('/[^0-9]/', '', $i['phone'] ?? '');
-
                                     $eventId = urlencode($event['generat']);
                                     $code = urlencode($i['invite_code']);
-
-                                    // $link = "www.hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
-                                    // Au lieu de :
-                                    // $link = "www.hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
-
-                                    // Utilisez ceci :
-                                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
-                                    $domain = $_SERVER['HTTP_HOST'];
-                                    $base_url = $protocol . $domain;
-
                                     $link = "www.hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
-
                                     $inviteLink = "https://hevent.notechgroup.com/guest/invitation.php?event_id=$eventId&code=$code";
 
                                     $eventTitle = $event['title'] ?? 'Invitation événement';
@@ -273,12 +256,9 @@ foreach ($invites as $i) {
                                         . "$link\n\n"
                                         . "Merci 🙏";
 
-                                    $waLink = !empty($phone)
-                                        ? "https://wa.me/$phone?text=" . rawurlencode($message)
-                                        : null;
-                                    ?>
+                                    $waLink = !empty($phone) ? "https://wa.me/$phone?text=" . rawurlencode($message) : null;
+                                ?>
 
-                                <!-- WHATSAPP -->
                                 <?php if ($waLink): ?>
                                 <a href="<?= $waLink ?>" target="_blank" class="btn btn-sm btn-success"
                                     style="border-radius: 6px;">
@@ -286,35 +266,31 @@ foreach ($invites as $i) {
                                 </a>
                                 <?php endif; ?>
 
-                                <!-- COPY LINK -->
                                 <button class="btn btn-sm btn-outline-primary"
                                     onclick="copyInvite('<?= htmlspecialchars($link, ENT_QUOTES) ?>')"
                                     title="Copier le lien" style="border-radius: 6px;">
                                     <i class="bi bi-clipboard"></i>
                                 </button>
 
-                                <!-- SHARE -->
                                 <button class="btn btn-sm btn-outline-success"
                                     onclick="shareInvite('<?= htmlspecialchars($inviteLink, ENT_QUOTES) ?>')">
                                     <i class="bi bi-share"></i>
                                 </button>
 
-                                <!-- EDIT -->
                                 <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal"
                                     data-bs-target="#edit<?= $i['id'] ?>" style="border-radius: 6px;">
                                     <i class="bi bi-pencil"></i>
                                 </button>
 
-                                <!-- DELETE -->
                                 <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal"
                                     data-bs-target="#delete<?= $i['id'] ?>" style="border-radius: 6px;">
                                     <i class="bi bi-trash"></i>
                                 </button>
-
                             </div>
                         </td>
                     </tr>
 
+                    <!-- MODAL EDIT -->
                     <div class="modal fade" id="edit<?= $i['id'] ?>" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
@@ -335,11 +311,23 @@ foreach ($invites as $i) {
                                                 value="<?= htmlspecialchars($i['fullname']) ?>" class="form-control"
                                                 style="border-radius: 8px;" required>
                                         </div>
-                                        <div class="mb-2">
+                                        <div class="mb-3">
                                             <label class="form-label fw-semibold">Numéro de téléphone</label>
                                             <input type="text" name="phone"
                                                 value="<?= htmlspecialchars($i['phone'] ?? '') ?>" class="form-control"
                                                 style="border-radius: 8px;">
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="form-label fw-semibold">Table associée</label>
+                                            <select name="table_id" class="form-select" style="border-radius: 8px;">
+                                                <option value="">-- Sans table (Non assigné) --</option>
+                                                <?php foreach ($event_tables as $table): ?>
+                                                <option value="<?= $table['id'] ?>"
+                                                    <?= ($i['table_id'] == $table['id']) ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($table['table_name']) ?>
+                                                </option>
+                                                <?php endforeach; ?>
+                                            </select>
                                         </div>
                                     </div>
                                     <div class="modal-footer border-0 pb-4 px-4">
@@ -353,6 +341,7 @@ foreach ($invites as $i) {
                         </div>
                     </div>
 
+                    <!-- MODAL DELETE -->
                     <div class="modal fade" id="delete<?= $i['id'] ?>" tabindex="-1" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content border-0 shadow-lg" style="border-radius: 15px;">
@@ -401,42 +390,6 @@ function shareInvite(link) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    <?php if ($total > 0): ?>
-    const ctx = document.getElementById('rsvpChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Présents', 'Absents', 'En attente'],
-            datasets: [{
-                data: [<?= $present ?>, <?= $absent ?>, <?= $pending ?>],
-                backgroundColor: ['#198754', '#dc3545', '#ffc107'],
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        boxWidth: 12,
-                        padding: 15,
-                        font: {
-                            weight: '600'
-                        }
-                    }
-                }
-            },
-            cutout: '70%'
-        }
-    });
-    <?php endif; ?>
-});
-
-// Moteur de recherche globale (Live Search)
 document.getElementById("liveSearch").addEventListener("keyup", function() {
     let value = this.value.toLowerCase();
     let rows = document.querySelectorAll("#inviteTable tbody tr");
@@ -452,7 +405,6 @@ function showToast(msg) {
     let toast = document.createElement('div');
     toast.className = "position-fixed bottom-0 end-0 bg-dark text-white p-3 m-3 rounded shadow-lg";
     toast.style.zIndex = "9999";
-    toast.style.borderRadius = "10px";
     toast.innerHTML = `<i class="bi bi-check-circle-fill text-success me-2"></i> ${msg}`;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2500);
