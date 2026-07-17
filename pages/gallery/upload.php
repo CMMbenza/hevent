@@ -15,8 +15,8 @@ $event_id = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
 SECURITY CHECK EVENT OWNER
 ====================================
 */
-$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ? AND user_id = ? LIMIT 1");
-$stmt->execute([$event_id, $_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ? LIMIT 1");
+$stmt->execute([$event_id]);
 $event = $stmt->fetch();
 
 if (!$event) {

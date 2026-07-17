@@ -17,9 +17,9 @@ $event_id = $_GET['event_id'] ?? 0;
 $stmt = $pdo->prepare("
     SELECT *
     FROM events
-    WHERE id=? AND user_id=?
+    WHERE generat=?
 ");
-$stmt->execute([$event_id, $_SESSION['user_id']]);
+$stmt->execute([$event_id]);
 $event = $stmt->fetch();
 
 if (!$event) {
@@ -34,7 +34,7 @@ MESSAGES
 $stmt = $pdo->prepare("
     SELECT *
     FROM guestbook
-    WHERE event_id=?
+    WHERE generat_event=?
     ORDER BY created_at DESC
 ");
 $stmt->execute([$event_id]);

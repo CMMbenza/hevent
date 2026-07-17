@@ -13,8 +13,8 @@ require_once '../../config/database.php';
 require_once '../../includes/functions.php';
 
 // 4. LOGIQUE APPLICATIVE (TRAITEMENT DE LA BDD)
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id=?");
-$stmt->execute([$_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT * FROM users");
+$stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if(!$user){ 
@@ -22,12 +22,12 @@ if(!$user){
 }
 
 // STATS CORRIGÉES
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM events WHERE user_id=?");
-$stmt->execute([$_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM events");
+$stmt->execute();
 $total_events = $stmt->fetchColumn();
 
-$stmt = $pdo->prepare("SELECT COUNT(*) FROM invites i JOIN events e ON e.id = i.generat_event WHERE e.user_id=?");
-$stmt->execute([$_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM invites i JOIN events e ON e.id = i.generat_event");
+$stmt->execute();
 $total_invites = $stmt->fetchColumn();
 
 

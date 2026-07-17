@@ -22,9 +22,8 @@ $user_id = $_SESSION['user_id'];
 $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM events
-    WHERE user_id=?
 ");
-$stmt->execute([$user_id]);
+$stmt->execute();
 $total_events = $stmt->fetchColumn();
 
 /*
@@ -36,9 +35,8 @@ $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM invites i
     INNER JOIN events e ON e.generat = i.generat_event
-    WHERE e.user_id=?
-");
-$stmt->execute([$user_id]);
+    ");
+$stmt->execute();
 $total_invites = $stmt->fetchColumn();
 
 /*
@@ -50,10 +48,9 @@ $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM invites i
     INNER JOIN events e ON e.generat = i.generat_event
-    WHERE e.user_id=?
-    AND i.rsvp_status='Present'
+    WHERE i.rsvp_status='Present'
 ");
-$stmt->execute([$user_id]);
+$stmt->execute();
 $present = $stmt->fetchColumn();
 
 /*
@@ -65,10 +62,9 @@ $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM invites i
     INNER JOIN events e ON e.generat = i.generat_event
-    WHERE e.user_id=?
-    AND i.rsvp_status='Absent'
+    WHERE i.rsvp_status='Absent'
 ");
-$stmt->execute([$user_id]);
+$stmt->execute();
 $absent = $stmt->fetchColumn();
 
 /*
@@ -80,14 +76,13 @@ $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM invites i
     INNER JOIN events e ON e.generat = i.generat_event
-    WHERE e.user_id=?
-    AND (
+    WHERE 
         i.rsvp_status='Pending'
         OR i.rsvp_status IS NULL
         OR i.rsvp_status=''
-    )
+    
 ");
-$stmt->execute([$user_id]);
+$stmt->execute();
 $pending = $stmt->fetchColumn();
 
 /*
@@ -109,10 +104,9 @@ $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM invites i
     INNER JOIN events e ON e.generat = i.generat_event
-    WHERE e.user_id=?
-    AND i.checked_in=1
+    WHERE i.checked_in=1
 ");
-$stmt->execute([$user_id]);
+$stmt->execute();
 $total_checkin = $stmt->fetchColumn();
 
 /*
@@ -124,9 +118,8 @@ $stmt = $pdo->prepare("
     SELECT COUNT(*)
     FROM event_tables t
     INNER JOIN events e ON e.generat = t.generat_event
-    WHERE e.user_id=?
 ");
-$stmt->execute([$user_id]);
+$stmt->execute();
 $total_tables = $stmt->fetchColumn();
 
 /*
@@ -137,11 +130,10 @@ $total_tables = $stmt->fetchColumn();
 $stmt = $pdo->prepare("
     SELECT title, event_date
     FROM events
-    WHERE user_id=?
     ORDER BY id DESC
     LIMIT 1
 ");
-$stmt->execute([$user_id]);
+$stmt->execute();
 $last_event = $stmt->fetch(PDO::FETCH_ASSOC);
 
 // 4. INCLUSIONS VISUELLES (Inclus seulement après validation de l'utilisateur)
