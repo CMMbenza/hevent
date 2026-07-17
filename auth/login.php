@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $url = '../pages/events/event_show.php?action=show&id=' . urlencode($event['generat']);
                 header('Location: ' . $url);
             } else {
-                header('Location: ../pages/dashboard/');
+                header('Location: ../pages/events/form_event.php');
             }
         } else {
             header('Location: ../pages/dashboard/');

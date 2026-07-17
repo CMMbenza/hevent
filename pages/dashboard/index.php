@@ -28,66 +28,59 @@ $user_id = $_SESSION['user_id'];
 $totalEvents = $pdo->prepare("
 SELECT COUNT(*)
 FROM events
-WHERE user_id=?
 ");
-$totalEvents->execute([$user_id]);
+$totalEvents->execute();
 $totalEvents = $totalEvents->fetchColumn();
 
 $totalInvites = $pdo->prepare("
 SELECT COUNT(*)
 FROM invites i
 JOIN events e ON e.generat=i.generat_event
-WHERE e.user_id=?
 ");
-$totalInvites->execute([$user_id]);
+$totalInvites->execute();
 $totalInvites = $totalInvites->fetchColumn();
 
 $present = $pdo->prepare("
 SELECT COUNT(*)
 FROM invites i
 JOIN events e ON e.generat=i.generat_event
-WHERE e.user_id=?
 AND i.rsvp_status='Present'
 ");
-$present->execute([$user_id]);
+$present->execute();
 $present = $present->fetchColumn();
 
 $absent = $pdo->prepare("
 SELECT COUNT(*)
 FROM invites i
 JOIN events e ON e.generat=i.generat_event
-WHERE e.user_id=?
-AND i.rsvp_status='Absent'
+WHERE i.rsvp_status='Absent'
 ");
-$absent->execute([$user_id]);
+$absent->execute();
 $absent = $absent->fetchColumn();
 
 $pending = $pdo->prepare("
 SELECT COUNT(*)
 FROM invites i
 JOIN events e ON e.generat=i.generat_event
-WHERE e.user_id=?
-AND i.rsvp_status='En attente'
+WHERE i.rsvp_status='En attente'
 ");
-$pending->execute([$user_id]);
+$pending->execute();
 $pending = $pending->fetchColumn();
 
 $gallery = $pdo->prepare("
 SELECT COUNT(*)
 FROM gallery g
 JOIN events e ON e.generat=g.generat_event
-WHERE e.user_id=?
 ");
-$gallery->execute([$user_id]);
+$gallery->execute();
 $gallery = $gallery->fetchColumn();
 
 $guestbook = $pdo->prepare("
 SELECT COUNT(*)
 FROM guestbook g
 JOIN events e ON e.generat=g.generat_event
-WHERE e.user_id=?
 ");
-$guestbook->execute([$user_id]);
+$guestbook->execute();
 $guestbook = $guestbook->fetchColumn();
 
 /*
@@ -104,12 +97,11 @@ SELECT e.*,
     WHERE i.generat_event=e.id
 ) total_invites
 FROM events e
-WHERE e.user_id=?
 ORDER BY e.event_date DESC
 LIMIT 10
 ");
 
-$stmt->execute([$user_id]);
+$stmt->execute();
 $events = $stmt->fetchAll();
 
 include '../../includes/header.php';

@@ -32,13 +32,18 @@ unset($_SESSION['success']);
 EVENT LIST
 ----------------------------------
 */
-$stmt = $pdo->prepare("
-    SELECT * FROM events
-    WHERE user_id = ?
-    ORDER BY created_at DESC
-");
+// $stmt = $pdo->prepare("
+//     SELECT * FROM events
+//     WHERE user_id = ?
+//     ORDER BY created_at DESC
+// ");
 
-$stmt->execute([$_SESSION['user_id']]);
+// $stmt->execute([$_SESSION['user_id']]);
+// $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->query("
+    SELECT * FROM events
+    ORDER BY created_at DESC");
 $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Préparation des données pour le Graphique de la Charte
@@ -73,15 +78,17 @@ $totalEvents = count($events);
             </small>
         </div>
 
+        <?php if ($_SESSION['role'] === 'admin'): ?>
         <a href="../events/form_event.php" class="btn btn-primary shadow-sm"
             style="background-color: var(--dark-slate); border-color: var(--dark-slate); color: var(--primary-rose); font-weight: 500; border-radius: 12px; padding: 10px 20px;">
             <i class="bi bi-plus-circle me-2"></i>
             Nouvel événement
         </a>
+        <?php endif ?>
     </div>
 
     <div class="row p-3 g-4">
-        <div class="col-12 col-lg-8 col-xl-9">
+        <div class="col-12">
             <div class="row g-3">
                 <?php foreach ($events as $event): ?>
                 <?php
@@ -96,7 +103,7 @@ $totalEvents = count($events);
                 $chartLimitData[] = ($limit == -1) ? $current : $limit;
                 ?>
 
-                <div class="col-12 col-md-6 col-xl-6">
+                <div class="col-12 col-md-4 col-xl-4">
                     <div class="dashboard-card shadow-sm p-3 rounded h-100"
                         style="background-color: #ffffff; border: 1px solid rgba(0,0,0,0.05); position: relative; display: flex; flex-direction: column; justify-content: space-between;">
 

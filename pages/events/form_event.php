@@ -34,9 +34,9 @@ $generat_code = null;
 if ($action === 'edit' && $id) {
     $stmt = $pdo->prepare("
         SELECT * FROM events
-        WHERE generat = ? AND user_id = ?
+        WHERE generat = ?
     ");
-    $stmt->execute([$id, $user_id]);
+    $stmt->execute([$id]);
     $editEvent = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$editEvent) {
@@ -66,6 +66,18 @@ if (isset($_POST['save'])) {
     $pack_code_input = trim($_POST['pack_code']);
     
     $final_generat = $_POST['generat'];
+
+    $target_user_id = $_SESSION['user_id'];
+
+    // Si admin et champs client remplis : on crée le client d'abord
+    if (in_array($_SESSION['role'], ['admin', 'super-admin']) && !empty($_POST['client_email'])) {
+        $password = password_hash($_POST['client_password'], PASSWORD_DEFAULT);
+        $stmt = $pdo->prepare("INSERT INTO users (fullname, email, password, role) VALUES (?, ?, ?, 'user')");
+        $stmt->execute([$_POST['client_name'], $_POST['client_email'], $password]);
+        
+        // On récupère l'ID du nouveau client pour l'assigner à l'événement
+        $target_user_id = $pdo->lastInsertId();
+    }
 
     /*
     ----------------------------------
@@ -167,12 +179,13 @@ if (isset($_POST['save'])) {
     else {
         $stmt = $pdo->prepare("
             INSERT INTO events
-            (generat, user_id, title, event_type, event_date, event_time, lieu, location, description, cover_image, pack_code)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+            (generat, user_id, admin_id, title, event_type, event_date, event_time, lieu, location, description, cover_image, pack_code)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         ");
         $stmt->execute([
             $final_generat,
-            $_SESSION['user_id'],
+            $_SESSION['user_id'],   
+            $target_user_id,         
             $title,
             $type,
             $date,
@@ -188,6 +201,13 @@ if (isset($_POST['save'])) {
 
     header("Location: ../events/");
     exit;
+}
+
+// Récupérer la liste des utilisateurs pour l'admin
+$users_list = [];
+if (in_array($_SESSION['role'], ['admin', 'super-admin'])) {
+    $stmt_u = $pdo->query("SELECT id, fullname, email FROM users WHERE role = 'user' ORDER BY fullname ASC");
+    $users_list = $stmt_u->fetchAll(PDO::FETCH_ASSOC);
 }
 
 include '../../includes/header.php';
@@ -223,6 +243,23 @@ include '../../includes/topbar.php';
     <div class="card p-4 border-0 shadow-sm" style="border-radius: 16px; background-color: #ffffff;">
 
         <form method="POST" enctype="multipart/form-data">
+
+            <!-- 1. BLOC CRÉATION CLIENT (visible seulement pour admin) -->
+            <?php if (in_array($_SESSION['role'], ['admin', 'super-admin'])): ?>
+            <div class="mb-4">
+                <h6 class="text-secondary fw-bold">Créer le compte client associé</h6>
+                <div class="row">
+                    <div class="col-md-4"><input type="text" name="client_name" class="form-control border shadow-none"
+                            placeholder="Nom complet client"></div>
+                    <div class="col-md-4"><input type="email" name="client_email"
+                            class="form-control border shadow-none" placeholder="Email client"></div>
+                    <div class="col-md-4"><input type="text" name="client_password"
+                            class="form-control border shadow-none" placeholder="Mot de passe"></div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <hr class="">
 
             <?php if ($editEvent): ?>
             <input type="hidden" name="id" value="<?= $editEvent['id'] ?>">

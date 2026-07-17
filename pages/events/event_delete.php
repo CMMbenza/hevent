@@ -34,9 +34,9 @@ DELETE EVENT
 $stmt = $pdo->prepare("
     SELECT cover_image 
     FROM events 
-    WHERE generat = ? AND user_id = ?
+    WHERE generat = ?
 ");
-$stmt->execute([$id, $_SESSION['user_id']]);
+$stmt->execute([$id]);
 $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$event) {
@@ -56,9 +56,9 @@ if (!empty($event['cover_image'])) {
 /* delete event */
 $stmt = $pdo->prepare("
     DELETE FROM events
-    WHERE generat = ? AND user_id = ?
+    WHERE generat = ?
 ");
-$stmt->execute([$id, $_SESSION['user_id']]);
+$stmt->execute([$id]);
 
 /*
 ----------------------------------

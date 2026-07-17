@@ -26,17 +26,17 @@ if (!$id) {
 
 $stmt = $pdo->prepare("
     SELECT * FROM events
-    WHERE generat = ? AND user_id = ?
+    WHERE generat = ?
 ");
-$stmt->execute([$id, $_SESSION['user_id']]);
+$stmt->execute([$id]);
 
 $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$event) {
-    $_SESSION['error'] = "❌ Événement introuvable ou non autorisé";
-    header("Location: ../events/");
-    exit;
-}
+// if (!$event) {
+//     $_SESSION['error'] = "❌ Événement introuvable ou non autorisé";
+//     header("Location: ../events/");
+//     exit;
+// }
 
 $pack = getPack($pdo, $event['pack_code']);
 $current = countInvitesByEvent($pdo, $event['generat']);
