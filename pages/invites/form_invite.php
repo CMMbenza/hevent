@@ -31,8 +31,8 @@ if (!$event_id) {
 GET EVENT
 ----------------------------------
 */
-$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ? AND user_id = ?");
-$stmt->execute([$event_id, $_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ? ");
+$stmt->execute([$event_id]);
 $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$event) {

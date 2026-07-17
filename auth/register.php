@@ -27,8 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // 3. Insertion du nouvel utilisateur
             // Note : Ajustez la casse de 'PASSWORD' ou 'password' selon votre table SQL
             $stmt = $pdo->prepare("
-                INSERT INTO users (fullname, email, PASSWORD) 
-                VALUES (?, ?, ?)
+                INSERT INTO users (fullname, email, PASSWORD, role) 
+                VALUES (?, ?, ?, 'user')
             ");
 
             if ($stmt->execute([$fullname, $email, $hashedPassword])) {

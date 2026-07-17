@@ -24,9 +24,9 @@ EVENT
 $stmt = $pdo->prepare("
     SELECT *
     FROM events
-    WHERE generat=? AND user_id=?
+    WHERE generat=?
 ");
-$stmt->execute([$event_id, $_SESSION['user_id']]);
+$stmt->execute([$event_id]);
 $event = $stmt->fetch();
 
 if (!$event) {

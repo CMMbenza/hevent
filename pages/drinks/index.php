@@ -16,8 +16,8 @@ include '../../includes/topbar.php';
 $event_id = $_GET['event_id'] ?? 0;
 
 // Vérification de l'existence de l'événement
-$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ? AND user_id = ?");
-$stmt->execute([$event_id, $_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ?");
+$stmt->execute([$event_id]);
 $event = $stmt->fetch();
 
 if (!$event) { die("Événement introuvable ou accès refusé."); }

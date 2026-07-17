@@ -20,8 +20,8 @@ if ($event_id <= 0) {
     exit;
 }
 
-$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ? AND user_id = ? LIMIT 1");
-$stmt->execute([$event_id, $_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT * FROM events WHERE generat = ? LIMIT 1");
+$stmt->execute([$event_id]);
 $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$event) {
