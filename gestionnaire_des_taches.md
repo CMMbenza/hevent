@@ -18,3 +18,5 @@ CREATE TABLE `guest_drink_choices` (
   CONSTRAINT `fk_choice_invite` FOREIGN KEY (`invite_id`) REFERENCES `invites` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_choice_drink` FOREIGN KEY (`drink_id`) REFERENCES `event_drinks` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE guest_drink_choices ADD COLUMN custom_drink_name VARCHAR(100) NULL;

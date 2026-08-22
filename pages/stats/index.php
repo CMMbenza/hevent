@@ -42,18 +42,20 @@ $pct_present = $total > 0 ? round(($present / $total) * 100, 1) : 0;
 $pct_absent  = $total > 0 ? round(($absent / $total) * 100, 1) : 0;
 $pct_pending = $total > 0 ? round(($pending / $total) * 100, 1) : 0;
 
-/* --- DONNÉES DÉTAILLÉES (Invités + Réponses + Boissons) --- */
+/* --- DONNÉES DÉTAILLÉES (Invités + Réponses + Boissons regroupées) --- */
 $stmt = $pdo->prepare("
-    SELECT i.fullname, i.rsvp_status, d.drink_name, tb.table_name
+    SELECT i.id, i.fullname, i.rsvp_status, tb.table_name,
+           GROUP_CONCAT(COALESCE(d.drink_name, gc.custom_drink_name) SEPARATOR ', ') as drinks
     FROM invites i
     LEFT JOIN guest_drink_choices gc ON i.id = gc.invite_id
     LEFT JOIN event_drinks d ON gc.drink_id = d.id
     LEFT JOIN event_tables tb ON i.table_id = tb.id
     WHERE i.generat_event = ?
+    GROUP BY i.id
     ORDER BY i.fullname ASC
 ");
 $stmt->execute([$event_id]);
-$invites_list = $stmt->fetchAll();
+$invites_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $stmt = $pdo->prepare("
     SELECT d.drink_name, COUNT(gc.id) as total_choix
@@ -197,16 +199,21 @@ $drinks_stats = $stmt->fetchAll();
                             </thead>
                             <tbody id="tableBody">
                                 <?php foreach($invites_list as $i): 
-                                $badge = ($i['rsvp_status'] == 'Present') ? 'bg-success' : (($i['rsvp_status'] == 'Absent') ? 'bg-danger' : 'bg-warning');
-                            ?>
+                                    $badge = ($i['rsvp_status'] == 'Present') ? 'bg-success' : (($i['rsvp_status'] == 'Absent') ? 'bg-danger' : 'bg-warning');
+                                ?>
                                 <tr>
                                     <td class="ps-3 fw-bold"><?= htmlspecialchars($i['fullname']) ?></td>
                                     <td><span
                                             class="badge bg-primary"><?= htmlspecialchars($i['table_name'] ?? 'N/A') ?></span>
                                     </td>
                                     <td><span class="badge <?= $badge ?>"><?= $i['rsvp_status'] ?></span></td>
-                                    <td class="pe-3"><span
-                                            class="badge bg-danger border"><?= htmlspecialchars($i['drink_name'] ?? 'Non défini') ?></span>
+                                    <td class="pe-3">
+                                        <?php if (!empty($i['drinks'])): ?>
+                                        <span
+                                            class="badge bg-secondary border"><?= htmlspecialchars($i['drinks']) ?></span>
+                                        <?php else: ?>
+                                        <span class="text-muted small">Non défini</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
