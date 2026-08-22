@@ -29,7 +29,7 @@ if (empty($code)) {
         exit;
     }
     
-    // On simule un tableau $invite générique pour que le HTML existant fonctionne sans bug
+    // Simulation d'un tableau générique pour le mode démo/aperçu
     $invite = [
         'id'          => 0,
         'event_id'    => $event['generat'],
@@ -71,7 +71,6 @@ if (empty($code)) {
     $invite = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$invite) {
-        // Code invalide ou introuvable -> retour à l'index
         header('Location: ../');
         exit;
     }
@@ -86,11 +85,7 @@ $stmt = $pdo->prepare("SELECT * FROM event_drinks WHERE generat_event = ?");
 $stmt->execute([$event_id]);
 $drinks_disponibles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Récupération du choix actuel
-// $stmt = $pdo->prepare("SELECT drink_id FROM guest_drink_choices WHERE invite_id = ? LIMIT 1");
-// $stmt->execute([$invite['id']]);
-// $current_choice = $stmt->fetchColumn();
-
+// Récupération des choix d'invité
 $stmt = $pdo->prepare("SELECT drink_id, custom_drink_name FROM guest_drink_choices WHERE invite_id = ?");
 $stmt->execute([$invite['id']]);
 $choices_data = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -100,45 +95,42 @@ $current_custom_drink = '';
 
 foreach ($choices_data as $row) {
     if (!empty($row['drink_id'])) {
-        $current_drink_ids[] = $row['drink_id']; // Stocke les IDs des boissons cochées
+        $current_drink_ids[] = $row['drink_id'];
     }
     if (!empty($row['custom_drink_name'])) {
-        $current_custom_drink = $row['custom_drink_name']; // Stocke le texte de la boisson personnalisée
+        $current_custom_drink = $row['custom_drink_name'];
     }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$preview_mode) {
 
     // Traitement du RSVP
-if (isset($_POST['save_rsvp'])) {
-    $status = $_POST['rsvp_status'] ?? 'En attente';
-    $selected_drink_ids = $_POST['drink_ids'] ?? []; // Tableau des IDs choisis
-    $custom_drink = trim($_POST['custom_drink'] ?? '');
+    if (isset($_POST['save_rsvp'])) {
+        $status = $_POST['rsvp_status'] ?? 'En attente';
+        $selected_drink_ids = $_POST['drink_ids'] ?? [];
+        $custom_drink = trim($_POST['custom_drink'] ?? '');
 
-    $stmt = $pdo->prepare("UPDATE invites SET rsvp_status = ? WHERE id = ?");
-    $stmt->execute([$status, $invite['id']]);
+        $stmt = $pdo->prepare("UPDATE invites SET rsvp_status = ? WHERE id = ?");
+        $stmt->execute([$status, $invite['id']]);
 
-    // Nettoyage des anciens choix
-    $pdo->prepare("DELETE FROM guest_drink_choices WHERE invite_id = ?")->execute([$invite['id']]);
+        $pdo->prepare("DELETE FROM guest_drink_choices WHERE invite_id = ?")->execute([$invite['id']]);
 
-    // Insertion des choix multiples
-    if (!empty($selected_drink_ids)) {
-        $stmt = $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, drink_id) VALUES (?, ?)");
-        foreach ($selected_drink_ids as $d_id) {
-            $stmt->execute([$invite['id'], (int)$d_id]);
+        if (!empty($selected_drink_ids)) {
+            $stmt = $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, drink_id) VALUES (?, ?)");
+            foreach ($selected_drink_ids as $d_id) {
+                $stmt->execute([$invite['id'], (int)$d_id]);
+            }
         }
-    }
 
-    // Insertion si suggestion personnalisée
-    if (!empty($custom_drink)) {
-        $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, custom_drink_name) VALUES (?, ?)")
-            ->execute([$invite['id'], $custom_drink]);
-    }
+        if (!empty($custom_drink)) {
+            $pdo->prepare("INSERT INTO guest_drink_choices (invite_id, custom_drink_name) VALUES (?, ?)")
+                ->execute([$invite['id'], $custom_drink]);
+        }
 
-    $_SESSION['flash'] = '<div class="alert alert-success">Choix enregistrés !</div>';
-    header("Location: " . $_SERVER['REQUEST_URI']);
-    exit;
-}
+        $_SESSION['flash'] = '<div class="alert alert-success">Choix enregistrés avec succès !</div>';
+        header("Location: " . $_SERVER['REQUEST_URI']);
+        exit;
+    }
 
     // Traitement du Livre d'or
     if (isset($_POST['save_message'])) {
@@ -150,7 +142,7 @@ if (isset($_POST['save_rsvp'])) {
 
             $_SESSION['flash'] = '
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-heart-fill"></i> Merci pour votre tendre message !
+                <i class="bi bi-heart-fill"></i> Merci pour votre message !
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>';
             
@@ -183,12 +175,10 @@ if (!empty($invite['event_date'])) {
     $evt_date = $invite['event_date'];
     $evt_time = !empty($invite['event_time']) ? $invite['event_time'] : "00:00:00";
     
-    // Création des dates de début et de fin (on rajoute 4 heures par défaut pour la fin)
     $start_datetime = new DateTime($evt_date . ' ' . $evt_time);
     $end_datetime = clone $start_datetime;
     $end_datetime->modify('+4 hours');
     
-    // Format requis par Google : AAAAMMJJTHHMMSS
     $google_start = $start_datetime->format('Ymd\THms');
     $google_end = $end_datetime->format('Ymd\THms');
     
@@ -216,7 +206,7 @@ if (!empty($invite['event_date'])) {
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@300;400;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@300;400;600;700&display=swap"
         rel="stylesheet">
 
     <style>
@@ -388,48 +378,39 @@ if (!empty($invite['event_date'])) {
         letter-spacing: 1px;
     }
 
+    /* CARTE D'INVITATION AVEC DESIGN PASS ÉVÉNEMENTIEL ENRICHI */
     .invitation-card {
         background-color: var(--bg-light);
-        border-radius: 20px;
-        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06);
+        border-radius: 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
         overflow: hidden;
         max-width: 850px;
         margin: 0 auto;
-        border: none;
+        border: 1px solid rgba(212, 163, 150, 0.3);
     }
 
     .card-header-img {
         position: relative;
-        height: 250px;
-        background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.3)),
+        height: 220px;
+        background: linear-gradient(rgba(26, 34, 50, 0.6), rgba(26, 34, 50, 0.7)),
             url('<?= !empty($invite['cover_image']) ? "../uploads/covers/".htmlspecialchars($invite['cover_image']) : "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200" ?>') center center/cover;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         color: white;
-        padding: 15px;
+        padding: 20px;
+        text-align: center;
     }
 
     @media (min-width: 768px) {
         .card-header-img {
-            height: 350px;
+            height: 280px;
         }
     }
 
-    .bottom-wave {
-        position: absolute;
-        left: 0;
-        bottom: -1px;
-        width: 100%;
-        height: 40px;
-        background: #fdfbf9;
-        border-radius: 100% 100% 0 0/100% 100% 0 0;
-        z-index: 5;
-    }
-
     .card-body-content {
-        padding: 20px 15px;
+        padding: 30px 20px;
     }
 
     @media (min-width: 768px) {
@@ -438,43 +419,49 @@ if (!empty($invite['event_date'])) {
         }
     }
 
-    .invitation-text {
-        font-family: 'Playfair Display', serif;
-        font-size: 1rem;
-        color: #555;
-    }
-
     .detail-icon {
         color: var(--primary-rose);
-        font-size: 1.3rem;
+        font-size: 1.4rem;
+        margin-bottom: 4px;
     }
 
     .detail-label {
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         text-transform: uppercase;
-        font-weight: 600;
-        color: #666;
+        font-weight: 700;
+        color: #888;
+        letter-spacing: 1px;
     }
 
     .detail-value {
         font-family: 'Playfair Display', serif;
         font-weight: 700;
-        font-size: 0.9rem;
-        color: #111;
+        font-size: 0.95rem;
+        color: var(--dark-slate);
+    }
+
+    /* NOUVEL ENCADRÉ LIEU ET ADRESSE POUR LA CARTE */
+    .venue-box {
+        background: #f4efeb;
+        border-left: 4px solid var(--primary-rose);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-top: 15px;
+        text-align: left;
     }
 
     .qr-section {
-        border-top: 1px solid #e5dcd9;
-        padding-top: 20px;
+        border-top: 2px dashed #e5dcd9;
+        padding-top: 25px;
         text-align: center;
     }
 
     @media (min-width: 992px) {
         .qr-section {
             border-top: none;
-            border-left: 1px solid #e5dcd9;
+            border-left: 2px dashed #e5dcd9;
             padding-top: 0;
-            padding-left: 20px;
+            padding-left: 30px;
         }
     }
 
@@ -494,7 +481,7 @@ if (!empty($invite['event_date'])) {
         gap: 6px;
         text-decoration: none;
         width: 100%;
-        max-width: 320px;
+        max-width: 340px;
     }
 
     .btn-download-img:hover {
@@ -593,7 +580,6 @@ if (!empty($invite['event_date'])) {
         transform: translateY(0);
     }
 
-    /* Bouton Musique Flottant */
     .music-control {
         position: fixed;
         bottom: 20px;
@@ -608,15 +594,12 @@ if (!empty($invite['event_date'])) {
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
-    /* AJOUT : Bouton Contact WhatsApp Flottant (Vert) */
     .contact-control {
         position: fixed;
         bottom: 75px;
-        /* Placé juste au-dessus du bouton musique */
         right: 20px;
         z-index: 2000;
         background: #25D366;
-        /* Vert officiel WhatsApp */
         color: white;
         border: none;
         width: 45px;
@@ -639,11 +622,9 @@ if (!empty($invite['event_date'])) {
 
 <body>
 
-    <!-- Lecteur Audio avec une musique de fond acoustique très douce et calme -->
     <audio id="bgMusic" loop src="../assets/audio/the_mountain-calm-romantic-444038.mp3"></audio>
     <button class="music-control" id="musicBtn" onclick="toggleMusic()"><i class="bi bi-music-note-beamed"></i></button>
 
-    <!-- AJOUT : Bouton flottant de contact WhatsApp -->
     <a href="https://wa.me/243980287578" target="_blank" class="contact-control" title="Nous contacter sur WhatsApp">
         <i class="bi bi-whatsapp fs-5"></i>
     </a>
@@ -732,7 +713,6 @@ if (!empty($invite['event_date'])) {
         </div>
     </section>
 
-    <!-- Modal Galerie -->
     <div class="modal fade" id="publicGalleryModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl">
             <div class="modal-content bg-transparent border-0">
@@ -804,14 +784,12 @@ if (!empty($invite['event_date'])) {
                                 <input class="form-check-input mb-3" type="checkbox" name="drink_ids[]"
                                     value="<?= $d['id'] ?>" id="drink_<?= $d['id'] ?>"
                                     <?= in_array($d['id'], $current_drink_ids) ? 'checked' : '' ?>>
-
                                 <label class="mb-0" for="drink_<?= $d['id'] ?>">
                                     <?= htmlspecialchars($d['drink_name']) ?>
                                 </label>
                             </div>
                             <?php endforeach; ?>
                         </div>
-
 
                         <div class="mt-3">
                             <label class="form-label small text-muted"><b>Votre boisson préférée ne figure pas dans la
@@ -832,74 +810,109 @@ if (!empty($invite['event_date'])) {
     </section>
     <?php endif; ?>
 
+    <!-- SECTION CARTE D'INVITATION AVEC LES DÉTAILS DU LIEU POUR TÉLÉCHARGEMENT -->
     <section id="invitation" class="container py-4 reveal">
         <h2 class="section-title">Votre Carte d'Invitation</h2>
         <div class="heart-separator"><i class="bi bi-heart-fill"></i></div>
 
         <div class="card invitation-card" id="invitationCardToDownload">
             <div class="card-header-img">
-                <h1 class="hero-names text-center" style="font-size:2.2rem;">
-                    <?= htmlspecialchars($invite['fullname']) ?></h1>
-                <p class="small text-uppercase tracking-wider">Invitation Officielle</p>
-                <div class="bottom-wave"></div>
+                <!-- <span class="badge bg-white text-dark mb-2 px-3 py-1 text-uppercase fw-bold shadow-sm" style="font-size:0.7rem; letter-spacing:1px;">Pass Officiel d'Accès</span> -->
+                <h1 class="hero-names text-center text-white mb-0" style="font-size:3.5rem;">
+                    <?= htmlspecialchars($invite['fullname']) ?>
+                </h1>
+                <p class="small text-white-50 text-uppercase tracking-wider mt-1 mb-0">-
+                    <?= htmlspecialchars($invite['event_type']) ?> -</p>
             </div>
+
             <div class="card-body-content">
                 <div class="row g-4 align-items-center">
-                    <div class="col-lg-8 text-center">
-                        <div class="mb-2"><i class="bi bi-infinity fs-2" style="color: var(--primary-rose);"></i></div>
-                        <p class="invitation-text mb-4 text-muted px-2">Vous êtes chaleureusement convié. Votre présence
-                            à nos côtés est précieuse.</p>
+                    <div class="col-lg-7 text-center text-lg-start">
+                        <div
+                            class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2 mb-2">
+                            <i class="bi bi-folder" style="color: var(--primary-rose);"></i>
+                            <span
+                                class="text-uppercase small fw-bold text-muted"><?= htmlspecialchars($invite['title']) ?></span>
+                        </div>
+                        <p class="invitation-text mb-4 text-muted">Vous êtes chaleureusement convié(e). Votre présence à
+                            nos côtés sera un honneur.</p>
 
-                        <div class="row g-2 justify-content-center mb-4">
-                            <div class="col-4 text-center">
-                                <i class="bi bi-calendar3 detail-icon"></i>
-                                <div class="detail-label">Date</div>
-                                <div class="detail-value text-nowrap">
-                                    <?= !empty($invite['event_date']) ? date('d/m/Y', strtotime($invite['event_date'])) : '' ?>
+                        <!-- DÉTAILS : DATE / HEURE / TABLE -->
+                        <div class="row g-2 text-center mb-3">
+                            <div class="col-4">
+                                <div class="p-2 border rounded-3 bg-white">
+                                    <i class="bi bi-calendar3 detail-icon"></i>
+                                    <div class="detail-label">Date</div>
+                                    <div class="detail-value text-nowrap">
+                                        <?= !empty($invite['event_date']) ? date('d/m/Y', strtotime($invite['event_date'])) : '' ?>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-4 text-center">
-                                <i class="bi bi-clock detail-icon"></i>
-                                <div class="detail-label">Heure</div>
-                                <div class="detail-value">
-                                    <?= !empty($invite['event_time']) ? substr($invite['event_time'], 0, 5) : '' ?>
+                            <div class="col-4">
+                                <div class="p-2 border rounded-3 bg-white">
+                                    <i class="bi bi-clock detail-icon"></i>
+                                    <div class="detail-label">Heure</div>
+                                    <div class="detail-value">
+                                        <?= !empty($invite['event_time']) ? substr($invite['event_time'], 0, 5) : '' ?>
+                                    </div>
                                 </div>
                             </div>
-                            <?php if(!empty($invite['table_name'])): ?>
-                            <div class="col-4 text-center">
-                                <i class="bi bi-grid-3x3-gap detail-icon"></i>
-                                <div class="detail-label">Table</div>
-                                <div class="detail-value text-truncate"><?= htmlspecialchars($invite['table_name']) ?>
+                            <div class="col-4">
+                                <div class="p-2 border rounded-3 bg-white">
+                                    <i class="bi bi-grid-3x3-gap detail-icon"></i>
+                                    <div class="detail-label">Table</div>
+                                    <div class="detail-value text-truncate">
+                                        <?= !empty($invite['table_name']) ? htmlspecialchars($invite['table_name']) : 'Assignée à l\'entrée' ?>
+                                    </div>
                                 </div>
                             </div>
-                            <?php endif; ?>
                         </div>
 
-                        <!-- AJOUT : Bouton Google Calendar chic et discret -->
-                        <?php if (!empty($google_cal_url)): ?>
-                        <div class="mb-2 data-html2canvas-ignore">
-                            <a href="<?= $google_cal_url ?>" target="_blank" class="btn-calendar">
-                                <i class="bi bi-calendar-plus"></i> Ajouter à mon Google Agenda
-                            </a>
+                        <!-- BLOC LIEU ET ADRESSE POUR TÉLÉCHARGEMENT DIRECT -->
+                        <?php if (!empty($invite['location'])): ?>
+                        <div class="venue-box">
+                            <div class="d-flex align-items-start gap-2">
+                                <i class="bi bi-geo-alt-fill text-danger fs-5 mt-1"></i>
+                                <div>
+                                    <div class="detail-label">Lieu & Adresse de la fête</div>
+                                    <div class="fw-bold text-dark" style="font-size:0.9rem;">
+                                        <?= htmlspecialchars($invite['location']) ?>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <?php endif; ?>
                     </div>
-                    <div class="col-lg-4 qr-section">
-                        <div class="small fw-bold text-muted mb-1">CODE D'ACCÈS</div>
-                        <div class="detail-value text-uppercase mb-2"><?= htmlspecialchars($invite['invite_code']) ?>
+
+                    <!-- COIN PASS ET QR CODE -->
+                    <div class="col-lg-5 qr-section">
+                        <div class="p-3 rounded-4 bg-white border shadow-sm">
+                            <div class="small fw-bold text-muted mb-1 text-uppercase">Code d'accès</div>
+                            <div class="detail-value text-uppercase fs-4 text-dark mb-2" style="letter-spacing:2px;">
+                                <?= htmlspecialchars($invite['invite_code']) ?></div>
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=<?= urlencode($current_url) ?>"
+                                alt="QR Code d'accès" class="img-fluid rounded border p-1 mb-2"
+                                style="max-width: 130px;">
+                            <p class="text-muted mb-0 fw-bold" style="font-size: 0.7rem;"><i
+                                    class="bi bi-qr-code-scan me-1"></i> Présentez cette image à l'entrée</p>
                         </div>
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=<?= urlencode($current_url) ?>"
-                            alt="QR Code" class="img-fluid" style="max-width: 110px;">
-                        <p class="text-muted mt-2 mb-0" style="font-size: 0.7rem;">Présentez ce QR à l'entrée</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="text-center mt-4">
+            <?php if (!empty($google_cal_url)): ?>
+            <div class="mb-2 data-html2canvas-ignore">
+                <a href="<?= $google_cal_url ?>" target="_blank"
+                    class="btn-calendar d-inline-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-calendar-plus"></i> Ajouter à mon Google Agenda
+                </a>
+            </div>
+            <?php endif; ?>
             <button class="btn btn-download-img d-inline-flex align-items-center justify-content-center gap-2"
                 id="downloadImageBtn">
-                <i class="bi bi-file-earmark-image"></i> Télécharger ma carte
+                <i class="bi bi-file-earmark-image"></i> Télécharger ma carte d'invitation
             </button>
         </div>
     </section>
@@ -976,7 +989,6 @@ if (!empty($invite['event_date'])) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    // Gestion de la Musique en arrière plan
     function toggleMusic() {
         const music = document.getElementById('bgMusic');
         const btn = document.getElementById('musicBtn');
@@ -985,7 +997,7 @@ if (!empty($invite['event_date'])) {
         music.play();
 
         if (music.paused) {
-            music.play().catch(e => console.log("Lecture bloquée par le navigateur, interaction requise."));
+            music.play().catch(e => console.log("Lecture bloquée."));
             btn.innerHTML = '<i class="bi bi-pause-fill"></i>';
         } else {
             music.pause();
@@ -993,7 +1005,6 @@ if (!empty($invite['event_date'])) {
         }
     }
 
-    // Lancer automatiquement si possible
     window.addEventListener('click', () => {
         const music = document.getElementById('bgMusic');
         if (music.paused && !music.src.includes('paused_manually')) {
@@ -1055,11 +1066,15 @@ if (!empty($invite['event_date'])) {
     document.getElementById("downloadImageBtn").addEventListener("click", async function() {
         const card = document.getElementById("invitationCardToDownload");
         if (!card) return;
+
         const originalOverflow = card.style.overflow;
         const originalTransform = card.style.transform;
+
         card.style.overflow = "visible";
         card.style.transform = "none";
+
         await new Promise(r => setTimeout(r, 300));
+
         const rect = card.getBoundingClientRect();
         html2canvas(card, {
             scale: 2,
@@ -1075,16 +1090,18 @@ if (!empty($invite['event_date'])) {
             const img = canvas.toDataURL("image/png");
             const link = document.createElement("a");
             link.href = img;
-            link.download = "invitation-hevent.png";
+            link.download = "pass-invitation-hevent.png";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+
             card.style.overflow = originalOverflow;
             card.style.transform = originalTransform;
         }).catch(err => {
-            alert("Erreur capture carte");
+            alert("Erreur lors de la génération de la carte d'invitation.");
         });
     });
+
     revealElements();
     </script>
 </body>
